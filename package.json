@@ -55,14 +55,16 @@
       "icon": "assets/icon.png",
       "category": "Network",
       "desktop": {
-        "Name": "Lumina Browser",
-        "Comment": "Intelligent Browser powered by AI",
-        "Categories": "Network;WebBrowser;"
+        "entry": {
+          "Name": "Lumina Browser",
+          "Comment": "Intelligent Browser powered by AI",
+          "Categories": "Network;WebBrowser;"
+        }
       }
     },
     "publish": {
       "provider": "github",
-      "owner": "starkindustries",
+      "owner": "Ursernameisnotavaliabe",
       "repo": "lumina"
     }
   },
