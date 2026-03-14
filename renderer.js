@@ -565,7 +565,14 @@ async function sendChat() {
     const res=await fetch(url,{method:'POST',headers:authHeaders(),body:JSON.stringify({message:q,history:conv.messages.slice(-20)})})
     const data=await res.json()
     typing.remove()
-    const reply=data.reply||'Sem resposta.'
+    if(data.needs_key) {
+      appendMsg('lumina','⚠ Configure sua Groq API Key nas Configurações (⚙) para usar o JARVIS.','⚡ JARVIS')
+      togglePanel('panel-settings')
+      toast('⚠ Configure sua Groq API Key','error',5000)
+      chatSend.textContent='SEND'; chatSend.disabled=false
+      return
+    }
+    const reply=data.reply||'Sem resposta do servidor.'
     conv.messages.push({role:'assistant',content:reply}); conv.updated=Date.now(); saveChats()
     appendMsg('lumina',reply,'⚡ JARVIS')
     if(conv.messages.length===2&&conv.title==='Nova conversa') autoTitle(conv,q)
@@ -736,12 +743,12 @@ fetch(`${BACKEND}/config`).then(r=>r.json()).then(d=>{if(d.api_key)document.getE
 createTab()
 
 // ── SERVER URL + AUTH TOKEN ───────────────────────────────────────────────────
-let SERVER_URL = ''
+let SERVER_URL = 'https://luminaitsagoodbrowser.squareweb.app'
 let authToken  = ''
 let currentUser = null
 
-// Pega a URL do servidor e token do main process
-ipcRenderer.invoke('get-server-url').then(url => { SERVER_URL = url })
+// Atualiza com o valor do main process (caso mude)
+ipcRenderer.invoke('get-server-url').then(url => { if(url) SERVER_URL = url }).catch(()=>{})
 ipcRenderer.on('user-info', (e, user) => {
   currentUser = user
   if(user) {
@@ -798,11 +805,11 @@ window._sendChatRemote = async function() {
     const data = await res.json()
     loading.remove()
     if(data.needs_key) {
-      appendMsg('lumina', data.reply, '⚡ JARVIS')
+      appendMsg('lumina', '⚠ Configure sua Groq API Key nas Configurações (⚙) para usar o JARVIS.', '⚡ JARVIS')
       togglePanel('panel-settings')
-      toast('⚠ Configure sua Groq API Key nas configurações', 'error', 5000)
+      toast('⚠ Configure sua Groq API Key', 'error', 5000)
     } else {
-      appendMsg('lumina', data.reply, '⚡ JARVIS')
+      appendMsg('lumina', data.reply || 'Sem resposta do servidor.', '⚡ JARVIS')
     }
   } catch(e) { loading.remove(); appendMsg('lumina','Servidor offline.','⚡ JARVIS') }
   chatSend.textContent='SEND'; chatSend.disabled=false
@@ -2495,3 +2502,393 @@ document.addEventListener('keydown', e => {
     }
   } else { konamiIdx = 0 }
 })
+
+// ════════════════════════════════════════════════════════════════════
+// ── THEMES ───────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+const THEMES = [
+  { id:'lumina',    name:'LUMINA',    accent:'#00BFFF', bg:'stars',     desc:'Padrão' },
+  { id:'cyberpunk', name:'CYBERPUNK', accent:'#ff00ff', bg:'particles', desc:'Neon Rosa' },
+  { id:'matrix',    name:'MATRIX',    accent:'#00ff41', bg:'particles', desc:'Verde Hacker' },
+  { id:'sunset',    name:'SUNSET',    accent:'#f97316', bg:'gradient',  desc:'Laranja Quente' },
+  { id:'midnight',  name:'MIDNIGHT',  accent:'#6366f1', bg:'stars',     desc:'Roxo Escuro' },
+  { id:'crimson',   name:'CRIMSON',   accent:'#ef4444', bg:'gradient',  desc:'Vermelho Intenso' },
+  { id:'gold',      name:'GOLD',      accent:'#eab308', bg:'stars',     desc:'Dourado' },
+  { id:'arctic',    name:'ARCTIC',    accent:'#67e8f9', bg:'stars',     desc:'Azul Gelo' },
+]
+
+document.getElementById('btn-themes').onclick = () => {
+  togglePanel('panel-themes')
+  renderThemes()
+}
+
+function renderThemes() {
+  const grid = document.getElementById('themes-grid')
+  grid.innerHTML = THEMES.map(t => `
+    <div class="theme-card ${uiCfg.accent===t.accent?'active':''}"
+         onclick="applyTheme('${t.id}')"
+         style="padding:14px;border-radius:12px;border:2px solid ${uiCfg.accent===t.accent?t.accent:'rgba(255,255,255,0.06)'};background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;gap:8px">
+      <div style="width:100%;height:24px;border-radius:6px;background:${t.accent};box-shadow:0 0 12px ${t.accent}66"></div>
+      <div style="font-size:11px;color:${t.accent};letter-spacing:1px;font-weight:bold">${t.name}</div>
+      <div style="font-size:9px;color:#4a6a8a">${t.desc}</div>
+    </div>`).join('')
+}
+
+function applyTheme(id) {
+  const t = THEMES.find(x => x.id === id)
+  if(!t) return
+  applyAccent(t.accent)
+  bgMode = t.bg
+  uiCfg.bg = t.bg
+  initBg()
+  saveJSON(UI_CFG, uiCfg)
+  renderThemes()
+  toast(`🎨 Tema ${t.name} aplicado!`, 'success')
+}
+
+document.getElementById('theme-custom-apply').onclick = () => {
+  const color = document.getElementById('theme-custom-color').value
+  applyAccent(color)
+  saveJSON(UI_CFG, uiCfg)
+  renderThemes()
+  toast('🎨 Cor personalizada aplicada!', 'success')
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ── SESSION MANAGER ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+const SESS_FILE = path.join(os.homedir(), '.lumina', 'sessions.json')
+let sessions = loadJSON(SESS_FILE, [])
+
+document.getElementById('btn-sessions').onclick = () => {
+  togglePanel('panel-sessions')
+  renderSessions()
+}
+
+document.getElementById('session-save-btn').onclick = () => {
+  const name = document.getElementById('session-name').value.trim()
+  if(!name) { toast('Digite um nome para a sessão','info'); return }
+  const openTabs = tabs.filter(t => t.url).map(t => ({ url: t.url, title: t.title }))
+  if(!openTabs.length) { toast('Nenhuma aba aberta para salvar','info'); return }
+  const sess = { id: Date.now(), name, tabs: openTabs, created: Date.now() }
+  sessions.unshift(sess)
+  saveJSON(SESS_FILE, sessions)
+  document.getElementById('session-name').value = ''
+  renderSessions()
+  toast(`💾 Sessão "${name}" salva com ${openTabs.length} aba(s)!`, 'success')
+}
+
+function renderSessions() {
+  const list = document.getElementById('sessions-list')
+  if(!sessions.length) { list.innerHTML='<div class="empty-state">Nenhuma sessão salva.<br>Salve suas abas abertas acima.</div>'; return }
+  list.innerHTML = sessions.map(s => `
+    <div class="hist-item">
+      <div class="hist-info">
+        <div class="hist-title">${s.name} <span style="color:var(--text-dim);font-size:9px">${s.tabs.length} aba(s)</span></div>
+        <div class="hist-url">${new Date(s.created).toLocaleString('pt-BR')}</div>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="hist-del" onclick="restoreSession(${s.id})" title="Restaurar" style="color:var(--accent)">↩</button>
+        <button class="hist-del" onclick="deleteSession(${s.id})" title="Deletar">✕</button>
+      </div>
+    </div>`).join('')
+}
+
+function restoreSession(id) {
+  const sess = sessions.find(s => s.id === id)
+  if(!sess) return
+  sess.tabs.forEach(t => createTab(t.url, t.title))
+  toast(`↩ Sessão "${sess.name}" restaurada!`, 'success')
+  document.getElementById('panel-sessions').classList.add('hidden')
+}
+
+function deleteSession(id) {
+  sessions = sessions.filter(s => s.id !== id)
+  saveJSON(SESS_FILE, sessions)
+  renderSessions()
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ── DISCORD PANEL ────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+document.getElementById('btn-discord').onclick = () => togglePanel('panel-discord')
+
+document.getElementById('discord-open-app').onclick = () => {
+  // Tenta abrir o app do Discord instalado
+  ipcRenderer.send('open-discord-app')
+  document.getElementById('panel-discord').classList.add('hidden')
+}
+
+document.getElementById('discord-open-web').onclick = () => {
+  // Abre no navegador padrão do sistema
+  ipcRenderer.send('open-external', 'https://discord.com/app')
+  document.getElementById('panel-discord').classList.add('hidden')
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ── SIDE AI — JARVIS AO LADO DA PÁGINA ──────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+let sideAiOpen = false
+const sideAiPanel    = document.getElementById('side-ai-panel')
+const sideAiMessages = document.getElementById('side-ai-messages')
+const sideAiInput    = document.getElementById('side-ai-input')
+
+function toggleSideAi() {
+  sideAiOpen = !sideAiOpen
+  sideAiPanel.classList.toggle('hidden', !sideAiOpen)
+  document.getElementById('btn-side-ai').style.color = sideAiOpen ? 'var(--accent)' : ''
+  // Encolhe o webview pra dar espaço
+  const ca = document.getElementById('content-area')
+  ca.style.marginRight = sideAiOpen ? '320px' : '0'
+  if(sideAiOpen && !sideAiMessages.children.length) {
+    appendSideMsg('jarvis', '⚡ Olá! Estou ao seu lado. Clique em <strong>🔍 Analisar</strong> para eu analisar a página atual, ou me pergunte qualquer coisa.')
+  }
+}
+
+document.getElementById('btn-side-ai').onclick = toggleSideAi
+document.getElementById('side-ai-close').onclick = toggleSideAi
+
+function appendSideMsg(who, text) {
+  const div = document.createElement('div')
+  div.style.cssText = `padding:10px 12px;border-radius:10px;font-size:11px;line-height:1.6;${
+    who==='jarvis'
+      ? 'background:rgba(0,191,255,0.06);border:1px solid rgba(0,191,255,0.12);color:var(--text)'
+      : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:var(--text-dim);text-align:right'
+  }`
+  if(who==='jarvis') div.innerHTML = `<span style="color:var(--accent);font-size:9px;letter-spacing:1px;display:block;margin-bottom:4px">⚡ JARVIS</span>${text}`
+  else div.innerHTML = `<span style="color:#4a6a8a;font-size:9px;letter-spacing:1px;display:block;margin-bottom:4px">VOCÊ</span>${text}`
+  sideAiMessages.appendChild(div)
+  sideAiMessages.scrollTop = sideAiMessages.scrollHeight
+  return div
+}
+
+document.getElementById('side-ai-analyze').onclick = async () => {
+  const tab = tabs.find(t => t.id === activeTabId)
+  if(!tab || !tab.url || !tab.url.startsWith('http')) {
+    appendSideMsg('jarvis', 'Abra um site para eu analisar.')
+    return
+  }
+  appendSideMsg('user', `Analise esta página: ${tab.title || tab.url}`)
+  const thinking = appendSideMsg('jarvis', '<span style="color:#4a6a8a">⟳ Analisando...</span>')
+  try {
+    // Extrai texto da página
+    const pageText = await webview.executeJavaScript(`
+      (function(){
+        const body = document.body?.innerText || ''
+        return body.slice(0, 3000)
+      })()
+    `)
+    const url = SERVER_URL ? `${SERVER_URL}/chat` : `${BACKEND}/chat`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ message: `Analise esta página de forma concisa. Título: "${tab.title}". Conteúdo: "${pageText.slice(0,1500)}"` })
+    })
+    const data = await res.json()
+    thinking.innerHTML = `<span style="color:var(--accent);font-size:9px;letter-spacing:1px;display:block;margin-bottom:4px">⚡ JARVIS</span>${data.reply || 'Sem resposta.'}`
+  } catch(e) {
+    thinking.innerHTML = `<span style="color:var(--accent);font-size:9px;letter-spacing:1px;display:block;margin-bottom:4px">⚡ JARVIS</span>Erro ao analisar a página.`
+  }
+}
+
+async function sendSideAi() {
+  const q = sideAiInput.value.trim()
+  if(!q) return
+  sideAiInput.value = ''
+  appendSideMsg('user', q)
+  const thinking = appendSideMsg('jarvis', '<span style="color:#4a6a8a">⟳ Pensando...</span>')
+  try {
+    // Inclui contexto da página atual
+    const tab = tabs.find(t => t.id === activeTabId)
+    const ctx = tab?.url?.startsWith('http') ? ` [Contexto: o usuário está em "${tab.title || tab.url}"]` : ''
+    const url = SERVER_URL ? `${SERVER_URL}/chat` : `${BACKEND}/chat`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ message: q + ctx })
+    })
+    const data = await res.json()
+    thinking.innerHTML = `<span style="color:var(--accent);font-size:9px;letter-spacing:1px;display:block;margin-bottom:4px">⚡ JARVIS</span>${data.reply || 'Sem resposta.'}`
+  } catch(e) {
+    thinking.innerHTML = `<span style="color:var(--accent);font-size:9px;letter-spacing:1px;display:block;margin-bottom:4px">⚡ JARVIS</span>Sistemas offline.`
+  }
+}
+
+document.getElementById('side-ai-send').onclick = sendSideAi
+document.getElementById('side-ai-input').addEventListener('keydown', e => { if(e.key==='Enter') sendSideAi() })
+
+// Atalho Ctrl+Shift+A
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); toggleSideAi() }
+})
+
+// ════════════════════════════════════════════════════════════════════
+// ── JARVIS VOZ (TTS — lê resposta em voz alta) ───────────────────────
+// ════════════════════════════════════════════════════════════════════
+let ttsEnabled = false
+let ttsVoice   = null
+
+// Carrega vozes disponíveis
+window.speechSynthesis.onvoiceschanged = () => {
+  const voices = window.speechSynthesis.getVoices()
+  // Prefere voz em português, senão usa a primeira disponível
+  ttsVoice = voices.find(v => v.lang.startsWith('pt')) ||
+             voices.find(v => v.lang.startsWith('en')) ||
+             voices[0]
+}
+
+function speakJarvis(text) {
+  if(!ttsEnabled || !text) return
+  window.speechSynthesis.cancel()
+  const utt = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g,''))
+  utt.voice  = ttsVoice
+  utt.rate   = 1.05
+  utt.pitch  = 0.9
+  utt.volume = 0.9
+  window.speechSynthesis.speak(utt)
+}
+
+// Botão de voz no painel JARVIS — adiciona toggle TTS
+const jarvisHeader = document.getElementById('jarvis-chat-header')
+if(jarvisHeader) {
+  const ttsBtn = document.createElement('button')
+  ttsBtn.className = 'panel-btn'
+  ttsBtn.id        = 'jarvis-tts-btn'
+  ttsBtn.title     = 'JARVIS responde em voz alta'
+  ttsBtn.textContent = '🔇'
+  ttsBtn.onclick = () => {
+    ttsEnabled = !ttsEnabled
+    ttsBtn.textContent = ttsEnabled ? '🔊' : '🔇'
+    ttsBtn.style.color = ttsEnabled ? 'var(--accent)' : ''
+    toast(ttsEnabled ? '🔊 JARVIS falará em voz alta' : '🔇 Voz desativada', 'info')
+    if(!ttsEnabled) window.speechSynthesis.cancel()
+  }
+  // Insere antes do botão de fechar
+  const closeBtn = jarvisHeader.querySelector('.panel-close')
+  if(closeBtn) jarvisHeader.querySelector('div:last-child').insertBefore(ttsBtn, closeBtn)
+}
+
+// Intercepta respostas do JARVIS para falar em voz alta
+const _origAppendMsg = appendMsg
+window._tts_appendMsg = function(type, text, label) {
+  const el = _origAppendMsg(type, text, label)
+  if(type === 'lumina' && label) speakJarvis(text)
+  return el
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ── GESTOS DO MOUSE ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+let gestureStart   = null
+let gestureEnabled = true
+const GESTURE_THRESHOLD = 80
+
+const gestureIndicator = document.createElement('div')
+gestureIndicator.id = 'gesture-indicator'
+gestureIndicator.style.cssText = `
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(3,5,15,0.9);border:1px solid rgba(0,191,255,0.3);
+  border-radius:16px;padding:16px 24px;font-family:'Consolas',monospace;
+  font-size:24px;color:var(--accent);z-index:9999;pointer-events:none;
+  opacity:0;transition:opacity 0.15s;text-align:center;
+  box-shadow:0 0 30px rgba(0,191,255,0.2);
+`
+document.body.appendChild(gestureIndicator)
+
+function showGesture(icon, label) {
+  gestureIndicator.innerHTML = `${icon}<div style="font-size:11px;margin-top:6px;color:#4a6a8a;letter-spacing:2px">${label}</div>`
+  gestureIndicator.style.opacity = '1'
+  clearTimeout(gestureIndicator._t)
+  gestureIndicator._t = setTimeout(() => gestureIndicator.style.opacity = '0', 700)
+}
+
+document.addEventListener('mousedown', e => {
+  if(e.button === 2) gestureStart = { x: e.clientX, y: e.clientY }
+})
+
+document.addEventListener('mousemove', e => {
+  if(!gestureStart || !gestureEnabled) return
+  const dx = e.clientX - gestureStart.x
+  const dy = e.clientY - gestureStart.y
+  if(Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+    // Previne o menu de contexto se estiver gesticulando
+    document.addEventListener('contextmenu', e => e.preventDefault(), { once: true })
+  }
+})
+
+document.addEventListener('mouseup', e => {
+  if(e.button !== 2 || !gestureStart || !gestureEnabled) { gestureStart = null; return }
+  const dx = e.clientX - gestureStart.x
+  const dy = e.clientY - gestureStart.y
+  gestureStart = null
+
+  if(Math.abs(dx) < GESTURE_THRESHOLD && Math.abs(dy) < GESTURE_THRESHOLD) return
+
+  if(Math.abs(dx) > Math.abs(dy)) {
+    if(dx < -GESTURE_THRESHOLD) {
+      // ← Voltar
+      try { webview.goBack() } catch(ex) {}
+      showGesture('◀', 'VOLTAR')
+    } else if(dx > GESTURE_THRESHOLD) {
+      // → Avançar
+      try { webview.goForward() } catch(ex) {}
+      showGesture('▶', 'AVANÇAR')
+    }
+  } else {
+    if(dy < -GESTURE_THRESHOLD) {
+      // ↑ Nova aba
+      createTab()
+      showGesture('＋', 'NOVA ABA')
+    } else if(dy > GESTURE_THRESHOLD) {
+      // ↓ Fechar aba
+      closeTab(activeTabId)
+      showGesture('✕', 'FECHAR ABA')
+    }
+  }
+})
+
+// ════════════════════════════════════════════════════════════════════
+// ── SCREENSHOT COM AI ────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// Sobrescreve o botão de screenshot para adicionar opção de análise AI
+const _origTakeScreenshot = window.takeScreenshot
+window.takeScreenshot = async function() {
+  if(_origTakeScreenshot) await _origTakeScreenshot()
+  // Após captura, oferece análise AI
+  setTimeout(() => {
+    const overlay = document.getElementById('screenshot-overlay')
+    if(overlay && overlay.style.display !== 'none') {
+      if(!document.getElementById('ss-ai-btn')) {
+        const btn = document.createElement('button')
+        btn.id = 'ss-ai-btn'
+        btn.className = 'settings-btn'
+        btn.style.cssText = 'font-size:11px;padding:7px 14px;background:rgba(0,191,255,0.15);border-color:rgba(0,191,255,0.3);color:var(--accent)'
+        btn.textContent = '⚡ Analisar com JARVIS'
+        btn.onclick = analyzeScreenshotWithAI
+        overlay.querySelector('div:first-child div:last-child')?.insertBefore(btn, overlay.querySelector('#save-btn'))
+      }
+    }
+  }, 300)
+}
+
+async function analyzeScreenshotWithAI() {
+  const canvas = document.getElementById('screenshot-canvas')
+  if(!canvas) return
+  toast('⚡ JARVIS analisando screenshot...', 'info', 3000)
+  try {
+    const imageData = canvas.toDataURL('image/jpeg', 0.7).split(',')[1]
+    const url = SERVER_URL ? `${SERVER_URL}/chat` : `${BACKEND}/chat`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ message: `Descreva o que você vê nesta captura de tela do browser. O que está sendo exibido? Há algo relevante ou interessante? [imagem em base64 disponível mas não enviável via texto — descreva o contexto da página atual: ${tabs.find(t=>t.id===activeTabId)?.title || 'desconhecido'}]` })
+    })
+    const data = await res.json()
+    // Mostra resultado no JARVIS
+    document.getElementById('panel-jarvis').classList.remove('hidden')
+    appendMsg('lumina', `📸 Sobre o screenshot: ${data.reply}`, '⚡ JARVIS')
+    toast('✅ Análise concluída!', 'success')
+  } catch(e) {
+    toast('Erro ao analisar screenshot', 'error')
+  }
+}

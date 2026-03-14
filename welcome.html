@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>LUMINA — Bem-vindo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#00BFFF;--bg:#03050f;--glass:rgba(8,16,32,0.88);--text:#c8d8e8;--text-dim:#4a6a8a;--font:'Consolas','Courier New',monospace}
+html,body{width:100%;height:100%;background:var(--bg);font-family:var(--font);overflow:hidden;user-select:none}
+canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* TITLEBAR */
+.titlebar{height:36px;background:rgba(3,5,15,0.95);-webkit-app-region:drag;display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:relative;z-index:10;border-bottom:1px solid rgba(0,191,255,0.08)}
+.titlebar-logo{font-size:11px;font-weight:bold;letter-spacing:3px}
+.titlebar-logo .l{color:var(--accent)}.titlebar-logo .r{color:#1a3a5a}
+.win-btn{-webkit-app-region:no-drag;background:none;border:none;color:#2a4a6a;cursor:pointer;width:28px;height:24px;border-radius:4px;font-size:11px;transition:all 0.15s}
+.win-btn:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+#btn-close:hover{background:#ff4455;color:#fff}
+
+/* LAYOUT */
+.container{position:relative;z-index:1;height:calc(100vh - 36px);display:flex;align-items:center;justify-content:center}
+.card{width:420px;background:var(--glass);backdrop-filter:blur(24px);border:1px solid rgba(0,191,255,0.18);border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;align-items:center;gap:0;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 40px rgba(0,191,255,0.05);overflow:hidden}
+
+/* STEPS — cada um ocupa 100% da largura, desliza horizontalmente */
+.steps-wrap{width:100%;position:relative;overflow:hidden}
+.steps{display:flex;width:200%;transition:transform 0.4s cubic-bezier(.4,0,.2,1)}
+.step{width:50%;display:flex;flex-direction:column;align-items:center;gap:18px;padding:0 4px}
+
+/* LOGO */
+.logo{font-size:38px;font-weight:bold;letter-spacing:8px;margin-bottom:4px}
+.logo .l{color:var(--accent);text-shadow:0 0 20px var(--accent)}
+.logo .r{color:#1a3a5a}
+.subtitle{font-size:9px;color:var(--text-dim);letter-spacing:4px;margin-top:-14px}
+
+/* STEP TITLE */
+.step-title{font-size:11px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;text-align:center}
+
+/* LANG BUTTONS */
+.lang-grid{display:flex;gap:10px;width:100%}
+.lang-card{flex:1;padding:16px 10px;border-radius:12px;border:1px solid rgba(0,191,255,0.12);background:rgba(255,255,255,0.02);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all 0.2s}
+.lang-card:hover{border-color:rgba(0,191,255,0.35);background:rgba(0,191,255,0.06);transform:translateY(-2px)}
+.lang-card.selected{border-color:var(--accent);background:rgba(0,191,255,0.1);box-shadow:0 0 16px rgba(0,191,255,0.1)}
+.lang-flag{font-size:28px}
+.lang-name{font-size:12px;color:var(--text);letter-spacing:1px}
+.lang-sub{font-size:9px;color:var(--text-dim)}
+
+/* DEFAULT BROWSER */
+.choice-grid{display:flex;gap:10px;width:100%}
+.choice-card{flex:1;padding:18px 12px;border-radius:12px;border:1px solid rgba(0,191,255,0.12);background:rgba(255,255,255,0.02);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all 0.2s}
+.choice-card:hover{border-color:rgba(0,191,255,0.35);background:rgba(0,191,255,0.06);transform:translateY(-2px)}
+.choice-card.selected{border-color:var(--accent);background:rgba(0,191,255,0.1);box-shadow:0 0 16px rgba(0,191,255,0.1)}
+.choice-card.no-card{border-color:rgba(255,255,255,0.05)}
+.choice-card.no-card:hover{border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.03)}
+.choice-icon{font-size:26px}
+.choice-title{font-size:12px;color:var(--text);letter-spacing:1px;text-align:center}
+.choice-sub{font-size:9px;color:var(--text-dim);text-align:center;line-height:1.5}
+
+/* DIVIDER */
+.divider{width:100%;height:1px;background:rgba(0,191,255,0.08);margin:4px 0}
+
+/* PROGRESS DOTS */
+.dots{display:flex;gap:6px;margin-top:4px}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(0,191,255,0.2);transition:all 0.3s}
+.dot.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* BUTTON */
+.btn-next{width:100%;padding:14px;border-radius:12px;border:none;background:var(--accent);color:#000;font-family:var(--font);font-size:12px;font-weight:bold;letter-spacing:3px;cursor:pointer;transition:all 0.2s;margin-top:4px}
+.btn-next:hover{background:#33ccff;box-shadow:0 4px 20px rgba(0,191,255,0.3);transform:translateY(-1px)}
+.btn-next:disabled{background:rgba(0,191,255,0.2);color:rgba(0,0,0,0.4);cursor:not-allowed;transform:none;box-shadow:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="titlebar">
+  <div class="titlebar-logo"><span class="l">L</span><span class="r">UMINA</span></div>
+  <button class="win-btn" id="btn-close">✕</button>
+</div>
+
+<div class="container">
+  <div class="card">
+
+    <div class="logo"><span class="l">L</span><span class="r">UMINA</span></div>
+    <div class="subtitle">INTELLIGENT BROWSER</div>
+
+    <div style="height:20px"></div>
+
+    <div class="steps-wrap">
+      <div class="steps" id="steps">
+
+        <!-- STEP 1: IDIOMA -->
+        <div class="step" id="step-1">
+          <div class="step-title" id="s1-title">Escolha o idioma · Choose language</div>
+          <div class="lang-grid">
+            <div class="lang-card selected" id="lang-pt" onclick="selectLang('pt')">
+              <div class="lang-flag">🇧🇷</div>
+              <div class="lang-name">Português</div>
+              <div class="lang-sub">Brasil</div>
+            </div>
+            <div class="lang-card" id="lang-en" onclick="selectLang('en')">
+              <div class="lang-flag">🇺🇸</div>
+              <div class="lang-name">English</div>
+              <div class="lang-sub">United States</div>
+            </div>
+          </div>
+          <div class="dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+          </div>
+          <button class="btn-next" id="btn-step1" onclick="goStep2()">CONTINUAR →</button>
+        </div>
+
+        <!-- STEP 2: NAVEGADOR PADRÃO -->
+        <div class="step" id="step-2">
+          <div class="step-title" id="s2-title">Deseja definir como navegador padrão?</div>
+          <div class="choice-grid">
+            <div class="choice-card" id="choice-yes" onclick="selectDefault(true)">
+              <div class="choice-icon">🌐</div>
+              <div class="choice-title" id="txt-yes">Sim, definir</div>
+              <div class="choice-sub" id="txt-yes-sub">Links abrem no LUMINA automaticamente</div>
+            </div>
+            <div class="choice-card no-card" id="choice-no" onclick="selectDefault(false)">
+              <div class="choice-icon">✕</div>
+              <div class="choice-title" id="txt-no">Não agora</div>
+              <div class="choice-sub" id="txt-no-sub">Pode mudar depois nas configurações</div>
+            </div>
+          </div>
+          <div class="dots">
+            <div class="dot"></div>
+            <div class="dot active"></div>
+          </div>
+          <button class="btn-next" id="btn-step2" onclick="finish()" disabled>ENTRAR NA LUMINA →</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron')
+const fs   = require('fs')
+const path = require('path')
+const os   = require('os')
+
+// ── STARS ─────────────────────────────────────────────────────────────────────
+const c = document.getElementById('c'), ctx = c.getContext('2d')
+c.width = window.innerWidth; c.height = window.innerHeight
+const stars = Array.from({length:120}, () => ({
+  x: Math.random()*c.width, y: Math.random()*c.height,
+  r: Math.random()*1.3+0.2, op: Math.random()*0.5+0.05,
+  tw: Math.random()*Math.PI*2, tws: Math.random()*0.02+0.005
+}))
+function draw() {
+  ctx.clearRect(0,0,c.width,c.height)
+  stars.forEach(s => {
+    s.tw += s.tws
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2)
+    ctx.fillStyle = `rgba(180,210,255,${s.op*(0.4+0.6*Math.sin(s.tw))})`
+    ctx.fill()
+  })
+  requestAnimationFrame(draw)
+}
+draw()
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let selectedLang    = 'pt'
+let selectedDefault = null
+
+// ── I18N ─────────────────────────────────────────────────────────────────────
+const T = {
+  pt: {
+    s2_title:   'Deseja definir como navegador padrão?',
+    yes:        'Sim, definir',
+    yes_sub:    'Links abrem no LUMINA automaticamente',
+    no:         'Não agora',
+    no_sub:     'Pode mudar depois nas configurações',
+    enter:      'ENTRAR NA LUMINA →',
+  },
+  en: {
+    s2_title:   'Set as default browser?',
+    yes:        'Yes, set it',
+    yes_sub:    'Links open in LUMINA automatically',
+    no:         'Not now',
+    no_sub:     'You can change this later in settings',
+    enter:      'ENTER LUMINA →',
+  }
+}
+
+function selectLang(l) {
+  selectedLang = l
+  document.getElementById('lang-pt').classList.toggle('selected', l==='pt')
+  document.getElementById('lang-en').classList.toggle('selected', l==='en')
+}
+
+function goStep2() {
+  // Aplica i18n
+  const t = T[selectedLang]
+  document.getElementById('s2-title').textContent  = t.s2_title
+  document.getElementById('txt-yes').textContent   = t.yes
+  document.getElementById('txt-yes-sub').textContent = t.yes_sub
+  document.getElementById('txt-no').textContent    = t.no
+  document.getElementById('txt-no-sub').textContent  = t.no_sub
+  document.getElementById('btn-step2').textContent = t.enter
+  // Desliza pro step 2
+  document.getElementById('steps').style.transform = 'translateX(-50%)'
+}
+
+function selectDefault(val) {
+  selectedDefault = val
+  document.getElementById('choice-yes').classList.toggle('selected',  val===true)
+  document.getElementById('choice-no').classList.toggle('selected',   val===false)
+  document.getElementById('btn-step2').disabled = false
+}
+
+function finish() {
+  // Salva idioma no config
+  try {
+    const cfgPath = path.join(os.homedir(), '.lumina', 'config.json')
+    const dir = path.dirname(cfgPath)
+    if(!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive:true})
+    let cfg = {}
+    if(fs.existsSync(cfgPath)) cfg = JSON.parse(fs.readFileSync(cfgPath,'utf8'))
+    cfg.lang          = selectedLang
+    cfg.first_run_done = true
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2))
+  } catch(e) {}
+
+  // Define navegador padrão se quiser
+  if(selectedDefault) ipcRenderer.send('set-default-browser')
+
+  // Manda pro main abrir o app
+  ipcRenderer.send('welcome-done')
+}
+
+document.getElementById('btn-close').onclick = () => ipcRenderer.send('close')
+</script>
+</body>
+</html>

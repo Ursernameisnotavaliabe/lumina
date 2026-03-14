@@ -4,12 +4,15 @@
   "description": "LUMINA — Intelligent Browser powered by JARVIS AI",
   "main": "main.js",
   "scripts": {
-    "start":       "electron .",
-    "build":       "electron-builder",
-    "build:win":   "electron-builder --win --x64",
-    "build:mac":   "electron-builder --mac --x64 --arm64",
-    "build:linux": "electron-builder --linux --x64",
-    "build:all":   "electron-builder --win --mac --linux"
+    "start":            "electron .",
+    "prebuild:win":     "node build-backend.js",
+    "prebuild:mac":     "node build-backend.js",
+    "prebuild:linux":   "node build-backend.js",
+    "build":            "electron-builder",
+    "build:win":        "electron-builder --win --x64",
+    "build:mac":        "electron-builder --mac --x64 --arm64",
+    "build:linux":      "electron-builder --linux --x64",
+    "build:all":        "electron-builder --win --mac --linux"
   },
   "keywords": ["browser", "ai", "jarvis", "lumina"],
   "author": "Stark Industries",
@@ -55,9 +58,11 @@
       "icon": "assets/icon.png",
       "category": "Network",
       "desktop": {
-        "Name": "Lumina Browser",
-        "Comment": "Intelligent Browser powered by AI",
-        "Categories": "Network;WebBrowser;"
+        "entry": {
+          "Name": "Lumina Browser",
+          "Comment": "Intelligent Browser powered by AI",
+          "Categories": "Network;WebBrowser;"
+        }
       }
     },
     "publish": null

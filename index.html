@@ -124,6 +124,7 @@
   </div>
   <button class="nav-btn" id="btn-bookmark-star" title="Favoritar (Ctrl+D)">☆</button>
   <button class="nav-btn" id="btn-pip" title="Picture in Picture (Ctrl+P)">⧉</button>
+  <button class="nav-btn" id="btn-side-ai" title="Side AI — JARVIS ao lado (Ctrl+Shift+A)" style="font-size:13px">⚡</button>
   <button class="nav-btn" id="btn-summarize" title="Resumir com JARVIS">🤖</button>
   <button class="nav-btn" id="btn-focus" title="Modo foco">⛶</button>
   <button class="nav-btn" id="btn-incognito" title="Incógnito (Ctrl+I)">🕵</button>
@@ -136,22 +137,25 @@
     <button class="sb-btn" id="btn-jarvis"    data-label="JARVIS">⚡</button>
     <button class="sb-btn" id="btn-system"    data-label="Sistema">📊</button>
     <button class="sb-btn" id="btn-spotify"   data-label="Spotify">🎵</button>
+    <button class="sb-btn" id="btn-discord"   data-label="Discord">💬</button>
     <button class="sb-btn" id="btn-weather"   data-label="Clima">🌍</button>
     <button class="sb-btn" id="btn-bookmarks" data-label="Favoritos">⭐</button>
+    <button class="sb-btn" id="btn-sessions"  data-label="Sessões">💾</button>
     <button class="sb-btn" id="btn-history"   data-label="Histórico">🕐</button>
     <button class="sb-btn" id="btn-passwords" data-label="Senhas">🔐</button>
     <button class="sb-btn" id="btn-processes" data-label="Processos">⚙</button>
   </div>
   <div class="sb-divider"></div>
   <div class="sb-section">
-    <button class="sb-btn" id="btn-translate"   data-label="Traduzir">🌐</button>
-    <button class="sb-btn" id="btn-reader"      data-label="Leitura">📖</button>
-    <button class="sb-btn" id="btn-screenshot"  data-label="Screenshot">📸</button>
-    <button class="sb-btn" id="btn-voice"       data-label="Voz">🎙</button>
-    <button class="sb-btn" id="btn-captions"    data-label="Legendas">📝</button>
-    <button class="sb-btn" id="btn-split"       data-label="Dividir">⬜</button>
-    <button class="sb-btn" id="btn-adblock"     data-label="Ad Block">🛡</button>
-    <button class="sb-btn" id="btn-pomodoro"    data-label="Pomodoro">🍅</button>
+    <button class="sb-btn" id="btn-themes"     data-label="Themes">🎨</button>
+    <button class="sb-btn" id="btn-translate"  data-label="Traduzir">🌐</button>
+    <button class="sb-btn" id="btn-reader"     data-label="Leitura">📖</button>
+    <button class="sb-btn" id="btn-screenshot" data-label="Screenshot">📸</button>
+    <button class="sb-btn" id="btn-voice"      data-label="Voz">🎙</button>
+    <button class="sb-btn" id="btn-captions"   data-label="Legendas">📝</button>
+    <button class="sb-btn" id="btn-split"      data-label="Dividir">⬜</button>
+    <button class="sb-btn" id="btn-adblock"    data-label="Ad Block">🛡</button>
+    <button class="sb-btn" id="btn-pomodoro"   data-label="Pomodoro">🍅</button>
   </div>
   <div class="sb-divider"></div>
   <div class="sb-section sb-bottom">
@@ -162,9 +166,7 @@
 
 <!-- CONTENT -->
 <div id="content-area">
-  <webview id="main-webview" src="about:blank" allowpopups
-    partition="persist:main"
-    useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"></webview>
+  <webview id="main-webview" src="about:blank" allowpopups></webview>
 
   <!-- HOME -->
   <div id="home-page">
@@ -562,6 +564,73 @@
       <button class="settings-btn" id="create-profile-btn">+ Criar perfil</button>
     </div>
   </div>
+
+  <!-- PAINEL THEMES -->
+  <div id="panel-themes" class="panel glass hidden" style="width:340px">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#a855f7"></span><span class="panel-title">🎨 Themes</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div class="settings-label">ESCOLHA UM TEMA</div>
+      <div id="themes-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+      <div class="settings-label" style="margin-top:4px">COR PERSONALIZADA</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="color" id="theme-custom-color" value="#00BFFF" style="width:40px;height:36px;border:1px solid var(--glass-border);border-radius:8px;cursor:pointer;background:none;padding:2px">
+        <button class="settings-btn" id="theme-custom-apply" style="flex:1">Aplicar cor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL SESSIONS -->
+  <div id="panel-sessions" class="panel glass hidden" style="width:320px">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#06b6d4"></span><span class="panel-title">💾 Sessões</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:12px;border-bottom:1px solid var(--glass-border);display:flex;gap:8px">
+      <input class="settings-input" id="session-name" placeholder="Nome da sessão (ex: Games)" style="flex:1">
+      <button class="settings-btn" id="session-save-btn">💾 Salvar</button>
+    </div>
+    <div id="sessions-list" class="list-panel"></div>
+  </div>
+
+  <!-- PAINEL DISCORD -->
+  <div id="panel-discord" class="panel glass hidden" style="width:320px">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#5865f2"></span><span class="panel-title">💬 Discord</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:16px">
+      <div style="font-size:48px">💬</div>
+      <div style="font-size:13px;color:var(--text);letter-spacing:1px;text-align:center">Discord</div>
+      <div style="font-size:10px;color:var(--text-dim);text-align:center;line-height:1.7">
+        O Discord abre em uma janela separada para evitar conflitos de autenticação.
+      </div>
+      <button id="discord-open-app" class="settings-btn full" style="font-size:13px;padding:14px;background:rgba(88,101,242,0.15);border-color:rgba(88,101,242,0.4);color:#8b9cf7">
+        🚀 Abrir Discord
+      </button>
+      <button id="discord-open-web" class="settings-btn full" style="font-size:11px;padding:10px;background:rgba(255,255,255,0.03)">
+        🌐 Abrir no navegador padrão
+      </button>
+    </div>
+  </div>
+
+  <!-- SIDE AI — JARVIS AO LADO DA PÁGINA -->
+  <div id="side-ai-panel" class="hidden" style="position:fixed;top:72px;right:0;width:320px;height:calc(100vh - 72px - 28px);background:rgba(3,5,15,0.97);border-left:1px solid rgba(0,191,255,0.2);z-index:200;display:flex;flex-direction:column;font-family:'Consolas',monospace">
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(0,191,255,0.1);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:11px;color:var(--accent);letter-spacing:2px">⚡ SIDE AI</span>
+      <div style="display:flex;gap:6px">
+        <button id="side-ai-analyze" style="background:rgba(0,191,255,0.1);border:1px solid rgba(0,191,255,0.2);color:var(--accent);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:10px;font-family:inherit" title="Analisar página atual">🔍 Analisar</button>
+        <button id="side-ai-close" style="background:none;border:none;color:#4a6a8a;cursor:pointer;font-size:12px;padding:4px 8px;border-radius:4px">✕</button>
+      </div>
+    </div>
+    <div id="side-ai-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="padding:10px;border-top:1px solid rgba(0,191,255,0.1);display:flex;gap:6px">
+      <input id="side-ai-input" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(0,191,255,0.15);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:11px;outline:none" placeholder="Pergunte sobre esta página...">
+      <button id="side-ai-send" style="background:var(--accent);border:none;color:#000;cursor:pointer;padding:8px 12px;border-radius:8px;font-weight:bold;font-size:11px">→</button>
+    </div>
+  </div>
 </div>
 <script src="renderer.js"></script>
 
@@ -591,157 +660,5 @@
     ⚡ JARVIS
   </div>
 </div>
-
-<!-- PICTURE IN PICTURE OVERLAY -->
-<div id="pip-overlay" class="hidden">
-  <div id="pip-titlebar">
-    <span id="pip-site-icon">▶</span>
-    <span id="pip-title">Picture in Picture</span>
-    <div id="pip-controls">
-      <button id="pip-native-btn" title="PiP nativo do navegador">⧉</button>
-      <button id="pip-minimize-btn" title="Minimizar">─</button>
-      <button id="pip-close-btn" title="Fechar PiP">✕</button>
-    </div>
-  </div>
-  <div id="pip-video-list">
-    <div id="pip-no-video">Nenhum vídeo detectado nesta página.</div>
-  </div>
-  <div id="pip-status-bar">
-    <span id="pip-count-label">0 vídeos encontrados</span>
-    <button id="pip-refresh-btn">↻ Reescanear</button>
-  </div>
-</div>
-
-<style>
-/* ── PIP OVERLAY ─────────────────────────────────────────────────────── */
-#pip-overlay {
-  position: fixed;
-  bottom: 52px;
-  right: 16px;
-  width: 320px;
-  background: rgba(3,5,15,0.97);
-  border: 1px solid rgba(0,191,255,0.25);
-  border-radius: 14px;
-  z-index: 9999;
-  font-family: 'Consolas', monospace;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,191,255,0.08);
-  overflow: hidden;
-  transition: all 0.2s;
-}
-#pip-overlay.hidden { display: none; }
-#pip-overlay.pip-mini { width: 200px; }
-#pip-overlay.pip-mini #pip-video-list,
-#pip-overlay.pip-mini #pip-status-bar { display: none; }
-
-#pip-titlebar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: rgba(0,191,255,0.06);
-  border-bottom: 1px solid rgba(0,191,255,0.1);
-  cursor: move;
-  user-select: none;
-}
-#pip-site-icon { font-size: 14px; }
-#pip-title { flex: 1; font-size: 11px; color: var(--accent, #00BFFF); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#pip-controls { display: flex; gap: 4px; }
-#pip-controls button {
-  background: none;
-  border: none;
-  color: #4a6a8a;
-  cursor: pointer;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  font-size: 11px;
-  transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center;
-}
-#pip-controls button:hover { background: rgba(0,191,255,0.1); color: var(--accent, #00BFFF); }
-#pip-native-btn:hover { color: #22c55e !important; }
-#pip-close-btn:hover  { background: rgba(255,68,85,0.15) !important; color: #ff4455 !important; }
-
-#pip-video-list {
-  max-height: 280px;
-  overflow-y: auto;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-#pip-no-video {
-  text-align: center;
-  color: #2a4a6a;
-  font-size: 11px;
-  padding: 20px 0;
-}
-.pip-video-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(0,191,255,0.08);
-  border-radius: 8px;
-  padding: 8px 10px;
-  transition: all 0.15s;
-}
-.pip-video-item:hover { border-color: rgba(0,191,255,0.25); background: rgba(0,191,255,0.04); }
-.pip-video-thumb {
-  width: 64px;
-  height: 36px;
-  background: #0a1020;
-  border-radius: 4px;
-  overflow: hidden;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  border: 1px solid rgba(0,191,255,0.1);
-}
-.pip-video-info { flex: 1; min-width: 0; }
-.pip-video-site { font-size: 10px; color: var(--accent, #00BFFF); letter-spacing: 1px; text-transform: uppercase; }
-.pip-video-dims { font-size: 9px; color: #2a4a6a; margin-top: 2px; }
-.pip-video-duration { font-size: 9px; color: #4a6a8a; margin-top: 1px; }
-.pip-btn {
-  background: rgba(0,191,255,0.08);
-  border: 1px solid rgba(0,191,255,0.2);
-  color: var(--accent, #00BFFF);
-  cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-family: 'Consolas', monospace;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.pip-btn:hover { background: rgba(0,191,255,0.18); transform: scale(1.05); }
-.pip-btn.active { background: rgba(0,191,255,0.2); border-color: rgba(0,191,255,0.5); }
-
-#pip-status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 12px;
-  border-top: 1px solid rgba(0,191,255,0.08);
-}
-#pip-count-label { font-size: 9px; color: #2a4a6a; letter-spacing: 1px; }
-#pip-refresh-btn {
-  background: none;
-  border: none;
-  color: #2a4a6a;
-  cursor: pointer;
-  font-size: 9px;
-  font-family: 'Consolas', monospace;
-  transition: color 0.15s;
-  letter-spacing: 1px;
-}
-#pip-refresh-btn:hover { color: var(--accent, #00BFFF); }
-
-/* Botão PiP ativo na navbar */
-#btn-pip.pip-active { color: var(--accent, #00BFFF) !important; }
-</style>
-
 </body>
 </html>
