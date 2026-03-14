@@ -4,3 +4,5 @@ build/
 backend/server.exe
 backend/server
 *.blockmap
+*.exe
+*.dll
