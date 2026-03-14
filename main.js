@@ -57,60 +57,10 @@ function createMain() {
     } else {
       mainWindow.show()
     }
-    // Envia user info pro renderer
+    // Envia user info e idioma pro renderer
     mainWindow.webContents.send('user-info', cfg.user)
+    mainWindow.webContents.send('app-lang', cfg.lang || 'pt')
   })
-}
-
-// ── OAUTH SERVER (local) ──────────────────────────────────────────────────────
-function startOAuthServer(provider) {
-  if(oauthServer) { try{oauthServer.close()}catch(e){} }
-
-  oauthServer = http.createServer(async (req, res) => {
-    const url = new URL(req.url, `http://localhost:${REDIRECT_PORT}`)
-    const code = url.searchParams.get('code')
-
-    res.writeHead(200, {'Content-Type':'text/html'})
-    res.end(`<html><body style="background:#03050f;color:#00BFFF;font-family:Consolas;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
-      <div style="text-align:center"><div style="font-size:36px;font-weight:bold;letter-spacing:8px;margin-bottom:16px">LUMINA</div>
-      <div>Login realizado! Pode fechar esta janela.</div></div></body></html>`)
-
-    if(code) {
-      oauthServer.close()
-      oauthServer = null
-      processOAuthCode(provider, code)
-    }
-  })
-
-  oauthServer.listen(REDIRECT_PORT)
-}
-
-async function processOAuthCode(provider, code) {
-  try {
-    if(loginWindow) loginWindow.webContents.send('oauth-status', 'Verificando conta...')
-
-    const res  = await fetch(`${SERVER_URL}/auth/${provider}/token`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({code})
-    })
-    const data = await res.json()
-
-    if(data.error) throw new Error(data.error)
-
-    // Salva token e user
-    cfg.token = data.token
-    cfg.user  = data.user
-    saveCfg(cfg)
-
-    // Fecha login e abre main
-    if(loginWindow && !loginWindow.isDestroyed()) loginWindow.destroy()
-    createSplash()
-    createMain()
-
-  } catch(e) {
-    if(loginWindow) loginWindow.webContents.send('oauth-error', `Erro: ${e.message}`)
-  }
 }
 
 // ── STARTUP ───────────────────────────────────────────────────────────────────
@@ -248,7 +198,6 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if(backendProcess) backendProcess.kill()
-  if(oauthServer) oauthServer.close()
   app.quit()
 })
 

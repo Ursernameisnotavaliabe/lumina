@@ -768,6 +768,19 @@ ipcRenderer.on('user-info', (e, user) => {
   } catch(e) {}
 })
 
+// Aplica idioma salvo no welcome
+ipcRenderer.on('app-lang', (e, lang) => {
+  try {
+    document.documentElement.lang = lang || 'pt'
+    // Textos que mudam com o idioma
+    if(lang === 'en') {
+      document.title = 'LUMINA — Intelligent Browser'
+      const sub = document.getElementById('home-subtitle')
+      if(sub) sub.textContent = 'INTELLIGENT BROWSER · POWERED BY AI'
+    }
+  } catch(e) {}
+})
+
 // ── HELPERS DE REQUEST COM AUTH ───────────────────────────────────────────────
 function getGroqKey() {
   try {
