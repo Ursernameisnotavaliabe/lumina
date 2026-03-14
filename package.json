@@ -1,0 +1,70 @@
+{
+  "name": "lumina",
+  "version": "1.0.0",
+  "description": "LUMINA — Intelligent Browser powered by JARVIS AI",
+  "main": "main.js",
+  "scripts": {
+    "start":       "electron .",
+    "build":       "electron-builder",
+    "build:win":   "electron-builder --win --x64",
+    "build:mac":   "electron-builder --mac --x64 --arm64",
+    "build:linux": "electron-builder --linux --x64",
+    "build:all":   "electron-builder --win --mac --linux"
+  },
+  "keywords": ["browser", "ai", "jarvis", "lumina"],
+  "author": "Stark Industries",
+  "license": "MIT",
+  "build": {
+    "appId": "com.starkindustries.lumina",
+    "productName": "Lumina",
+    "icon": "assets/icon.png",
+    "files": [
+      "**/*",
+      "!node_modules/.cache",
+      "!**/*.{iml,hprof,orig,pyc,pyo,rbc,swp,caf,aiff,m4b,mp3}",
+      "!**/._*"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64", "ia32"] }],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg",  "arch": ["x64", "arm64"] },
+        { "target": "zip",  "arch": ["x64", "arm64"] }
+      ],
+      "icon": "assets/icon.png",
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb",      "arch": ["x64"] },
+        { "target": "rpm",      "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Network",
+      "desktop": {
+        "Name": "Lumina Browser",
+        "Comment": "Intelligent Browser powered by AI",
+        "Categories": "Network;WebBrowser;"
+      }
+    },
+    "publish": null
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^36.0.0",
+    "electron-builder": "^26.8.1"
+  }
+}

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>LUMINA</title><link rel="stylesheet" href="style.css"></head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ZOOM INDICATOR -->
+<div id="zoom-indicator">100%</div>
+
+<!-- DOWNLOAD BAR -->
+<div id="download-bar"></div>
+
+<!-- CONTEXT MENU -->
+<div id="context-menu">
+  <div class="ctx-item" id="ctx-jarvis-explain">⚡ Explicar com JARVIS</div>
+  <div class="ctx-item" id="ctx-jarvis-translate">🌐 Traduzir seleção</div>
+  <div class="ctx-item" id="ctx-copy">📋 Copiar</div>
+  <div class="ctx-item" id="ctx-search">🔍 Pesquisar</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-screenshot">📸 Capturar página</div>
+  <div class="ctx-item" id="ctx-fullpage">📄 Screenshot completo</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-newtab">🔗 Abrir em nova aba</div>
+  <div class="ctx-item" id="ctx-split">⬜ Abrir ao lado</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-close-tab">✕ Fechar aba</div>
+</div>
+
+<!-- SPOTLIGHT / COMMAND PALETTE -->
+<div id="spotlight">
+  <div id="spotlight-box">
+    <input id="spotlight-input" placeholder="🔍 Pesquisar, navegar, ou executar comando...">
+    <div id="spotlight-results"></div>
+  </div>
+</div>
+
+<!-- READING PROGRESS -->
+<div id="reading-progress"></div>
+
+<!-- FOCUS TIMER -->
+<div id="focus-timer">
+  <span>🍅</span>
+  <span id="focus-timer-display">25:00</span>
+  <button id="focus-timer-btn">■ Parar</button>
+</div>
+
+<!-- SMART FILL BUTTON -->
+<button class="smartfill-btn" id="smartfill-btn">⚡ JARVIS pode preencher este formulário</button>
+
+<!-- SPLIT VIEW -->
+<div id="side-panel">
+  <div id="split-url-bar">
+    <button class="split-nav-btn" id="split-close">✕</button>
+    <input id="split-url-input" placeholder="URL ou pesquisa...">
+    <button class="split-nav-btn" id="split-go">→</button>
+  </div>
+  <webview id="side-webview" src="about:blank"></webview>
+</div>
+<div id="bg-wallpaper"></div>
+<div id="toast-container"></div>
+
+<!-- FIRST RUN MODAL -->
+<div id="first-run-modal" class="modal-overlay hidden">
+  <div class="modal glass" style="width:500px">
+    <div class="modal-logo"><span class="logo-l">L</span><span class="logo-rest">UMINA</span></div>
+    <div class="modal-title">Bem-vindo à LUMINA! 🎉</div>
+    <div class="modal-body">
+      Quer que a LUMINA seja seu navegador principal?
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;text-align:left">
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(0,191,255,0.05);border:1px solid rgba(0,191,255,0.1);border-radius:8px;padding:10px 14px">
+          <span style="font-size:18px">🌐</span>
+          <div>
+            <div style="font-size:12px;color:var(--text)">Navegador padrão</div>
+            <div style="font-size:10px;color:var(--text-dim)">Links abrem na LUMINA automaticamente</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(0,191,255,0.05);border:1px solid rgba(0,191,255,0.1);border-radius:8px;padding:10px 14px">
+          <span style="font-size:18px">🚀</span>
+          <div>
+            <div style="font-size:12px;color:var(--text)">Iniciar com o Windows</div>
+            <div style="font-size:10px;color:var(--text-dim)">LUMINA sempre pronta quando você ligar o PC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button id="fr-yes" class="modal-btn-yes">⚡ Sim, usar LUMINA como padrão</button>
+      <button id="fr-no"  class="modal-btn-no">Agora não</button>
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);margin-top:-8px">O Windows vai pedir confirmação nas configurações de apps padrão.</div>
+  </div>
+</div>
+
+<!-- TITLEBAR -->
+<div id="titlebar">
+  <div id="titlebar-left">
+    <div id="logo"><span class="logo-l">L</span><span class="logo-rest">UMINA</span></div>
+  </div>
+  <div id="tab-bar">
+    <div id="tabs-container"></div>
+    <button id="new-tab-btn" title="Nova aba (Ctrl+T)">+</button>
+    <button id="new-group-btn" title="Novo grupo de abas" style="background:none;border:1px solid var(--glass-border);color:var(--text-dim);cursor:pointer;width:24px;height:24px;border-radius:5px;font-size:11px;flex-shrink:0;transition:all 0.15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">▤</button>
+  </div>
+  <div id="titlebar-right">
+    <div id="incognito-badge" class="hidden">🕵 INCÓGNITO</div>
+    <button class="win-btn" id="btn-settings">⚙</button>
+    <button class="win-btn" id="btn-min">─</button>
+    <button class="win-btn" id="btn-max">□</button>
+    <button class="win-btn" id="btn-close">✕</button>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<div id="navbar">
+  <button class="nav-btn" id="btn-back">‹</button>
+  <button class="nav-btn" id="btn-fwd">›</button>
+  <button class="nav-btn" id="btn-reload">↻</button>
+  <button class="nav-btn" id="btn-home">⌂</button>
+  <div id="url-bar-wrap">
+    <span id="url-icon">🔒</span>
+    <input id="url-bar" type="text" placeholder="Pesquisar ou digitar URL...">
+    <button id="url-go">→</button>
+  </div>
+  <button class="nav-btn" id="btn-bookmark-star" title="Favoritar (Ctrl+D)">☆</button>
+  <button class="nav-btn" id="btn-pip" title="Picture in Picture (Ctrl+P)">⧉</button>
+  <button class="nav-btn" id="btn-summarize" title="Resumir com JARVIS">🤖</button>
+  <button class="nav-btn" id="btn-focus" title="Modo foco">⛶</button>
+  <button class="nav-btn" id="btn-incognito" title="Incógnito (Ctrl+I)">🕵</button>
+  <button class="nav-btn" id="btn-spotlight" title="Command Palette (Ctrl+K)">✦</button>
+</div>
+
+<!-- SIDEBAR ESQUERDA -->
+<div id="sidebar">
+  <div class="sb-section">
+    <button class="sb-btn" id="btn-jarvis"    data-label="JARVIS">⚡</button>
+    <button class="sb-btn" id="btn-system"    data-label="Sistema">📊</button>
+    <button class="sb-btn" id="btn-spotify"   data-label="Spotify">🎵</button>
+    <button class="sb-btn" id="btn-weather"   data-label="Clima">🌍</button>
+    <button class="sb-btn" id="btn-bookmarks" data-label="Favoritos">⭐</button>
+    <button class="sb-btn" id="btn-history"   data-label="Histórico">🕐</button>
+    <button class="sb-btn" id="btn-passwords" data-label="Senhas">🔐</button>
+    <button class="sb-btn" id="btn-processes" data-label="Processos">⚙</button>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section">
+    <button class="sb-btn" id="btn-translate"   data-label="Traduzir">🌐</button>
+    <button class="sb-btn" id="btn-reader"      data-label="Leitura">📖</button>
+    <button class="sb-btn" id="btn-screenshot"  data-label="Screenshot">📸</button>
+    <button class="sb-btn" id="btn-voice"       data-label="Voz">🎙</button>
+    <button class="sb-btn" id="btn-captions"    data-label="Legendas">📝</button>
+    <button class="sb-btn" id="btn-split"       data-label="Dividir">⬜</button>
+    <button class="sb-btn" id="btn-adblock"     data-label="Ad Block">🛡</button>
+    <button class="sb-btn" id="btn-pomodoro"    data-label="Pomodoro">🍅</button>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section sb-bottom">
+    <button class="sb-btn" id="btn-settings"  data-label="Config">⚙</button>
+  </div>
+  <div id="sb-resize-handle"></div>
+</div>
+
+<!-- CONTENT -->
+<div id="content-area">
+  <webview id="main-webview" src="about:blank" allowpopups
+    partition="persist:main"
+    useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"></webview>
+
+  <!-- HOME -->
+  <div id="home-page">
+    <div id="home-time"></div>
+    <div id="home-clock-big"></div>
+    <div id="home-logo-wrap">
+      <div id="home-logo"><span class="logo-l">L</span><span class="logo-rest">UMINA</span></div>
+      <div id="home-subtitle">INTELLIGENT BROWSER · POWERED BY AI</div>
+    </div>
+    <div id="home-search-wrap">
+      <span id="home-search-icon">🔍</span>
+      <input id="home-search" type="text" placeholder="Pesquisar ou digitar URL...">
+      <button id="home-search-btn">→</button>
+    </div>
+    <div id="home-quick">
+      <div class="quick-btn" data-url="https://google.com"><span>🔍</span>Google</div>
+      <div class="quick-btn" data-url="https://youtube.com"><span>▶</span>YouTube</div>
+      <div class="quick-btn" data-url="https://github.com"><span>🐙</span>GitHub</div>
+      <div class="quick-btn" data-url="https://open.spotify.com"><span>🎵</span>Spotify</div>
+      <div class="quick-btn" data-url="https://roblox.com"><span>🎮</span>Roblox</div>
+      <div class="quick-btn" data-url="https://twitch.tv"><span>📺</span>Twitch</div>
+      <div class="quick-btn" data-url="https://discord.com/app"><span>💬</span>Discord</div>
+      <div class="quick-btn" data-url="https://x.com"><span>𝕏</span>X</div>
+    </div>
+    <div id="home-weather" onclick="togglePanel('panel-weather');initWeather()">
+      <div id="home-weather-icon">🌡</div>
+      <div id="home-weather-info">
+        <div id="home-weather-temp">--°C</div>
+        <div id="home-weather-city">Carregando...</div>
+      </div>
+    </div>
+    <div id="home-recents"></div>
+    <div id="home-stats">
+      <div class="h-stat"><div class="h-val" id="h-cpu">--%</div><div class="h-label">CPU</div></div>
+      <div class="h-divider"></div>
+      <div class="h-stat"><div class="h-val" id="h-ram">--%</div><div class="h-label">RAM</div></div>
+      <div class="h-divider"></div>
+      <div class="h-stat"><div class="h-val" id="h-temp">--°C</div><div class="h-label">TEMP</div></div>
+      <div class="h-divider"></div>
+      <div class="h-stat"><div class="h-val" id="h-game">--</div><div class="h-label">JOGO</div></div>
+    </div>
+    <div id="home-shortcuts">
+      <div class="shortcut-item"><kbd>Ctrl+T</kbd> Nova aba</div>
+      <div class="shortcut-item"><kbd>Ctrl+W</kbd> Fechar aba</div>
+      <div class="shortcut-item"><kbd>Ctrl+L</kbd> Barra URL</div>
+      <div class="shortcut-item"><kbd>Ctrl+D</kbd> Favoritar</div>
+      <div class="shortcut-item"><kbd>Ctrl+I</kbd> Incógnito</div>
+      <div class="shortcut-item"><kbd>Ctrl+F</kbd> Foco</div>
+    </div>
+  </div>
+
+  <!-- JARVIS MULTI-CHAT -->
+  <div id="panel-jarvis" class="panel glass hidden jarvis-multichat">
+    <div id="jarvis-sidebar">
+      <div id="jarvis-sidebar-header">
+        <span class="panel-dot"></span>
+        <span class="jsb-title">JARVIS</span>
+        <button id="new-chat-btn" title="Nova conversa">+</button>
+      </div>
+      <div id="conversations-list"></div>
+      <div id="jarvis-sidebar-footer">
+        <button id="clear-all-chats-btn">🗑 Limpar tudo</button>
+      </div>
+    </div>
+    <div id="jarvis-main">
+      <div id="jarvis-chat-header">
+        <div id="chat-title-wrap">
+          <span id="chat-title-display" title="Duplo clique para editar">Nova conversa</span>
+          <input id="chat-title-input" style="display:none">
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button class="panel-btn" id="export-chat-btn" title="Exportar conversa">⬇</button>
+          <button class="panel-btn panel-close">✕</button>
+        </div>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-row">
+        <span class="chat-arrow">›</span>
+        <input id="chat-input" type="text" placeholder="Fale com o JARVIS...">
+        <button id="chat-send">SEND</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SISTEMA -->
+  <div id="panel-system" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot"></span><span class="panel-title">📊 Sistema</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div id="system-content">
+      <div class="stat-grid">
+        <div class="stat-card glass-light"><div class="stat-label">CPU</div><div class="stat-ring-wrap"><svg class="stat-ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" class="ring-bg"/><circle cx="30" cy="30" r="24" class="ring-fill" id="cpu-ring"/></svg><div class="stat-ring-val" id="cpu-val">--%</div></div></div>
+        <div class="stat-card glass-light"><div class="stat-label">RAM</div><div class="stat-ring-wrap"><svg class="stat-ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" class="ring-bg"/><circle cx="30" cy="30" r="24" class="ring-fill" id="ram-ring"/></svg><div class="stat-ring-val" id="ram-val">--%</div></div></div>
+        <div class="stat-card glass-light"><div class="stat-label">DISCO</div><div class="stat-ring-wrap"><svg class="stat-ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" class="ring-bg"/><circle cx="30" cy="30" r="24" class="ring-fill" id="disk-ring"/></svg><div class="stat-ring-val" id="disk-val">--%</div></div></div>
+      </div>
+      <div class="stat-row glass-light"><span class="stat-label">🌡 TEMPERATURA</span><span class="stat-big" id="temp-val">--°C</span></div>
+      <div class="stat-row glass-light"><span class="stat-label">🎮 JOGO</span><span class="stat-big accent" id="game-val">Nenhum</span></div>
+      <div class="stat-row glass-light"><span class="stat-label">⏱ UPTIME</span><span class="stat-big" id="uptime-val">--</span></div>
+    </div>
+  </div>
+
+  <!-- SPOTIFY -->
+  <div id="panel-spotify" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#1db954"></span><span class="panel-title">🎵 Spotify</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div id="spotify-content">
+      <div id="spotify-setup" class="hidden">
+        <p class="setup-hint">Cole suas credenciais do Spotify Developer:</p>
+        <input class="sp-input" id="sp-client-id" placeholder="Client ID">
+        <input class="sp-input" id="sp-client-secret" placeholder="Client Secret" type="password">
+        <button id="sp-save-btn">Conectar Spotify</button>
+        <a href="#" id="sp-link" class="sp-link">→ developer.spotify.com</a>
+      </div>
+      <div id="spotify-player" class="hidden">
+        <div id="sp-art-wrap"><img id="sp-art" src="" alt="cover"></div>
+        <div id="sp-info"><div id="sp-track">--</div><div id="sp-artist">--</div></div>
+        <div id="sp-progress-wrap"><div id="sp-progress-bar"><div id="sp-progress-fill"></div></div><div id="sp-time"><span id="sp-cur">0:00</span><span id="sp-dur">0:00</span></div></div>
+        <div id="sp-controls">
+          <button class="sp-btn" id="sp-prev">⏮</button>
+          <button class="sp-btn sp-main" id="sp-play">▶</button>
+          <button class="sp-btn" id="sp-next">⏭</button>
+        </div>
+        <div id="sp-vol-wrap"><span>🔈</span><input type="range" id="sp-volume" min="0" max="100" value="50"><span>🔊</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIMA -->
+  <div id="panel-weather" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#4fc3f7"></span><span class="panel-title">🌍 Clima & Localização</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div id="weather-content">
+      <div id="weather-permission" class="hidden"><div class="perm-icon">📍</div><p>Permitir acesso à sua localização?</p><div class="perm-btns"><button id="allow-location" class="perm-allow">✅ Permitir</button><button id="deny-location" class="perm-deny">Agora não</button></div></div>
+      <div id="weather-data" class="hidden">
+        <div class="weather-hero"><div id="weather-icon">🌡</div><div id="weather-temp">--°C</div><div id="weather-desc">--</div><div id="w-city" class="w-city">--</div></div>
+        <div class="weather-grid">
+          <div class="w-card glass-light"><div class="w-label">SENSAÇÃO</div><div class="w-val" id="w-feels">--</div></div>
+          <div class="w-card glass-light"><div class="w-label">HUMIDADE</div><div class="w-val" id="w-humidity">--</div></div>
+          <div class="w-card glass-light"><div class="w-label">VENTO</div><div class="w-val" id="w-wind">--</div></div>
+          <div class="w-card glass-light"><div class="w-label">COORDS</div><div class="w-val small" id="w-coords">--</div></div>
+        </div>
+        <div id="map-container"><iframe id="map-frame" src="" frameborder="0" loading="lazy"></iframe></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAVORITOS -->
+  <div id="panel-bookmarks" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#fbbf24"></span><span class="panel-title">⭐ Favoritos</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div id="bookmarks-list" class="list-panel"></div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div id="panel-history" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#94a3b8"></span><span class="panel-title">🕐 Histórico</span></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button id="clear-history" class="panel-btn" style="color:#ff4455;font-size:10px;padding:4px 8px;border:1px solid rgba(255,68,85,0.3);border-radius:5px">Limpar</button>
+        <button class="panel-btn panel-close">✕</button>
+      </div>
+    </div>
+    <div id="history-list" class="list-panel"></div>
+  </div>
+
+  <!-- CONFIGURAÇÕES -->
+  <div id="panel-settings" class="panel glass hidden settings-panel">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot"></span><span class="panel-title">⚙ Configurações</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div id="settings-content">
+      <div class="settings-section">
+        <div class="settings-label">🔑 API KEY (Groq)</div>
+        <div class="settings-row"><input class="settings-input" id="cfg-apikey" type="password" placeholder="gsk_..."><button class="settings-btn" id="cfg-apikey-save">Salvar</button></div>
+        <a href="#" class="settings-link" id="groq-link">→ console.groq.com/keys (gratuito)</a>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">🎨 COR DO TEMA</div>
+        <div class="settings-row color-row">
+          <input type="color" id="cfg-color" value="#00BFFF" class="color-picker">
+          <div class="color-presets">
+            <span class="color-dot" data-color="#00BFFF" style="background:#00BFFF"></span>
+            <span class="color-dot" data-color="#a855f7" style="background:#a855f7"></span>
+            <span class="color-dot" data-color="#22c55e" style="background:#22c55e"></span>
+            <span class="color-dot" data-color="#f59e0b" style="background:#f59e0b"></span>
+            <span class="color-dot" data-color="#ef4444" style="background:#ef4444"></span>
+            <span class="color-dot" data-color="#ec4899" style="background:#ec4899"></span>
+          </div>
+          <button class="settings-btn" id="cfg-color-save">Aplicar</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">🌌 FUNDO DA HOME</div>
+        <div class="bg-options">
+          <div class="bg-opt active" data-bg="stars">🌌 Estrelas</div>
+          <div class="bg-opt" data-bg="particles">✨ Partículas</div>
+          <div class="bg-opt" data-bg="gradient">🎨 Gradiente</div>
+          <div class="bg-opt" data-bg="none">⬛ Sólido</div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">🖼 WALLPAPER</div>
+        <div class="settings-row">
+          <button class="settings-btn flex1" id="cfg-wallpaper-btn">📁 Escolher imagem</button>
+          <button class="settings-btn" id="cfg-wallpaper-clear">✕</button>
+        </div>
+        <input type="file" id="cfg-wallpaper-input" accept="image/*" style="display:none">
+        <div id="wallpaper-preview"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">💡 OPACIDADE DO WALLPAPER</div>
+        <input type="range" id="cfg-opacity" min="5" max="80" value="30" class="full-range">
+        <div class="range-labels"><span>Mais escuro</span><span>Mais claro</span></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">🔍 MOTOR DE BUSCA</div>
+        <div class="search-opts">
+          <div class="search-opt active" data-engine="google">Google</div>
+          <div class="search-opt" data-engine="bing">Bing</div>
+          <div class="search-opt" data-engine="duckduckgo">DuckDuckGo</div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">👤 CONTA</div>
+        <div class="user-card glass-light">
+          <img id="user-avatar" src="" style="display:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--accent)">
+          <div style="flex:1"><div id="user-name" style="font-size:13px;color:var(--text)">--</div><div id="user-email" style="font-size:10px;color:var(--text-dim)">--</div></div>
+          <button id="btn-logout" class="settings-btn" style="background:rgba(255,68,85,0.15);border:1px solid rgba(255,68,85,0.3);color:#ff4455">Sair</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">⚡ SISTEMA</div>
+        <button class="settings-btn full" id="cfg-startup">🚀 Alternar inicialização com Windows</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- PROCESSOS -->
+  <div id="panel-processes" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#f97316"></span><span class="panel-title">⚙ Processos</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div id="processes-list" class="list-panel"></div>
+  </div>
+
+  <!-- TRADUTOR -->
+  <div id="panel-translate" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#8b5cf6"></span><span class="panel-title">🌐 Traduzir página</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <p style="font-size:11px;color:var(--text-dim)">Selecione o idioma para traduzir a página atual:</p>
+      <div class="lang-grid">
+        <div class="lang-opt" data-lang="pt">🇧🇷 Português</div>
+        <div class="lang-opt" data-lang="en">🇺🇸 English</div>
+        <div class="lang-opt" data-lang="es">🇪🇸 Español</div>
+        <div class="lang-opt" data-lang="fr">🇫🇷 Français</div>
+        <div class="lang-opt" data-lang="de">🇩🇪 Deutsch</div>
+        <div class="lang-opt" data-lang="ja">🇯🇵 日本語</div>
+      </div>
+      <div id="translate-status" style="font-size:10px;color:var(--text-dim)"></div>
+    </div>
+  </div>
+
+  <!-- SENHAS -->
+  <div id="panel-passwords" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#22c55e"></span><span class="panel-title">🔐 Senhas Salvas</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:12px;border-bottom:1px solid var(--glass-border);display:flex;flex-direction:column;gap:8px">
+      <input class="settings-input" id="pass-site" placeholder="Site (ex: google.com)">
+      <input class="settings-input" id="pass-user" placeholder="Usuário / Email">
+      <div style="display:flex;gap:8px">
+        <input class="settings-input" id="pass-pass" type="password" placeholder="Senha" style="flex:1">
+        <button class="settings-btn" id="save-password-btn">+ Salvar</button>
+      </div>
+    </div>
+    <div id="passwords-list" class="list-panel"></div>
+  </div>
+
+  <!-- SCREENSHOT OVERLAY -->
+  <div id="screenshot-overlay" style="position:fixed;inset:0;z-index:600;background:#03050f;display:none">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,0,0,0.5);border-bottom:1px solid var(--glass-border);flex-shrink:0">
+      <span style="font-size:12px;color:var(--accent);font-weight:bold">📸 Anotações</span>
+      <div style="display:flex;gap:8px;align-items:center;margin-left:8px">
+        <button class="draw-tool active settings-btn" data-tool="pen" style="padding:6px 10px;font-size:10px">✏ Caneta</button>
+        <button class="draw-tool settings-btn" data-tool="eraser" style="padding:6px 10px;font-size:10px;background:rgba(255,255,255,0.08)">⬜ Borracha</button>
+        <input type="color" id="draw-color" value="#ff4444" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;padding:2px">
+        <input type="range" id="draw-size" min="1" max="20" value="3" style="width:80px;accent-color:var(--accent)">
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="settings-btn" onclick="saveScreenshot()" style="font-size:11px;padding:7px 14px">💾 Salvar</button>
+        <button class="settings-btn" onclick="closeScreenshot()" style="font-size:11px;padding:7px 14px;background:rgba(255,68,85,0.2);border:1px solid rgba(255,68,85,0.3);color:#ff4455">✕ Fechar</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:16px">
+      <canvas id="screenshot-canvas" style="max-width:100%;max-height:100%;cursor:crosshair;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5)"></canvas>
+    </div>
+  </div>
+
+  <!-- LEGENDA AO VIVO OVERLAY -->
+  <div id="captions-overlay">
+    <div id="captions-box">
+      <div id="captions-original"></div>
+      <div id="captions-translated"></div>
+    </div>
+    <div id="captions-controls">
+      <span id="captions-lang-badge">--</span>
+      <button id="captions-stop-btn" onclick="stopCaptions()">■ Parar</button>
+    </div>
+  </div>
+
+  <!-- PAINEL CONFIG LEGENDAS -->
+  <div id="panel-captions" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#f59e0b"></span><span class="panel-title">🎙📝 Legendas ao Vivo</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div class="settings-label">DISPOSITIVO DE ÁUDIO</div>
+      <select id="captions-device" class="settings-input" style="cursor:pointer"></select>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:10px;color:var(--text-dim)">Ou digite o ID manualmente:</span>
+        <input id="captions-device-manual" type="number" class="settings-input" placeholder="ex: 23" style="width:80px;padding:6px 10px;font-size:12px" min="0">
+        <button class="settings-btn" id="captions-scan-btn" style="font-size:10px;padding:7px 12px">🔍 Escanear</button>
+      </div>
+      <div class="settings-label">TAMANHO DA LEGENDA</div>
+      <input type="range" id="captions-size" min="14" max="36" value="22" class="full-range">
+      <div class="settings-label">POSIÇÃO</div>
+      <div class="bg-options">
+        <div class="bg-opt active" data-pos="bottom">⬇ Baixo</div>
+        <div class="bg-opt" data-pos="top">⬆ Cima</div>
+        <div class="bg-opt" data-pos="center">⬛ Centro</div>
+      </div>
+      <div class="settings-label">OPACIDADE DO FUNDO</div>
+      <input type="range" id="captions-opacity" min="0" max="100" value="70" class="full-range">
+      <button class="settings-btn full" id="captions-start-btn" style="font-size:13px;padding:14px">
+        🎙 Iniciar Legendas
+      </button>
+      <div id="captions-status" style="font-size:10px;color:var(--text-dim);text-align:center"></div>
+      <div style="font-size:10px;color:var(--text-dim);line-height:1.7;border-top:1px solid var(--glass-border);padding-top:12px">
+        ℹ Usa <strong style="color:var(--accent)">WASAPI Loopback nativo</strong> do Windows — sem instalar nada extra!<br>
+        Só precisa de: <code style="color:var(--accent)">pip install pyaudiowpatch openai-whisper</code><br>
+        <span style="color:#4a6a8a">Dispositivos marcados com 🔁 são loopbacks do sistema.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL GRUPOS DE ABAS -->
+  <div id="panel-groups" class="panel glass hidden">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#8b5cf6"></span><span class="panel-title">▤ Grupos de Abas</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div class="settings-label">CRIAR NOVO GRUPO</div>
+      <input class="settings-input" id="group-name" placeholder="Nome do grupo (ex: Games, Trabalho)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="group-color-picker">
+        <span class="color-dot" data-color="#ef4444" style="background:#ef4444;cursor:pointer"></span>
+        <span class="color-dot" data-color="#f97316" style="background:#f97316;cursor:pointer"></span>
+        <span class="color-dot" data-color="#eab308" style="background:#eab308;cursor:pointer"></span>
+        <span class="color-dot" data-color="#22c55e" style="background:#22c55e;cursor:pointer"></span>
+        <span class="color-dot" data-color="#3b82f6" style="background:#3b82f6;cursor:pointer"></span>
+        <span class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;cursor:pointer"></span>
+        <span class="color-dot" data-color="#ec4899" style="background:#ec4899;cursor:pointer"></span>
+      </div>
+      <button class="settings-btn" id="create-group-btn">+ Criar grupo com aba atual</button>
+      <div class="settings-label" style="margin-top:4px">GRUPOS ATIVOS</div>
+      <div id="groups-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+
+  <!-- PAINEL PERFIS -->
+  <div id="panel-profiles" class="panel glass hidden" style="width:320px">
+    <div class="panel-header">
+      <div class="panel-title-wrap"><span class="panel-dot"></span><span class="panel-title">👤 Perfis</span></div>
+      <button class="panel-btn panel-close">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div id="profiles-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="settings-label" style="margin-top:4px">NOVO PERFIL</div>
+      <input class="settings-input" id="new-profile-name" placeholder="Nome do perfil">
+      <button class="settings-btn" id="create-profile-btn">+ Criar perfil</button>
+    </div>
+  </div>
+</div>
+<script src="renderer.js"></script>
+
+<!-- JARVIS STATUS BAR -->
+<div id="jarvis-statusbar">
+  <div class="statusbar-item">
+    <div class="statusbar-dot"></div>
+    <span id="sb-jarvis-status">JARVIS ONLINE</span>
+  </div>
+  <div class="statusbar-item clickable" onclick="togglePanel('panel-system')">
+    <span>CPU</span><span id="sb-cpu">--%</span>
+  </div>
+  <div class="statusbar-item clickable" onclick="togglePanel('panel-system')">
+    <span>RAM</span><span id="sb-ram">--%</span>
+  </div>
+  <div class="statusbar-item clickable" onclick="togglePanel('panel-system')">
+    <span id="sb-game">🎮 Nenhum jogo</span>
+  </div>
+  <div class="statusbar-item clickable" onclick="togglePanel('panel-weather');initWeather()">
+    <span id="sb-weather">🌡 --°C</span>
+  </div>
+  <div id="statusbar-spacer"></div>
+  <div class="statusbar-item">
+    <span id="sb-time"></span>
+  </div>
+  <div class="statusbar-item clickable" onclick="togglePanel('panel-jarvis')">
+    ⚡ JARVIS
+  </div>
+</div>
+
+<!-- PICTURE IN PICTURE OVERLAY -->
+<div id="pip-overlay" class="hidden">
+  <div id="pip-titlebar">
+    <span id="pip-site-icon">▶</span>
+    <span id="pip-title">Picture in Picture</span>
+    <div id="pip-controls">
+      <button id="pip-native-btn" title="PiP nativo do navegador">⧉</button>
+      <button id="pip-minimize-btn" title="Minimizar">─</button>
+      <button id="pip-close-btn" title="Fechar PiP">✕</button>
+    </div>
+  </div>
+  <div id="pip-video-list">
+    <div id="pip-no-video">Nenhum vídeo detectado nesta página.</div>
+  </div>
+  <div id="pip-status-bar">
+    <span id="pip-count-label">0 vídeos encontrados</span>
+    <button id="pip-refresh-btn">↻ Reescanear</button>
+  </div>
+</div>
+
+<style>
+/* ── PIP OVERLAY ─────────────────────────────────────────────────────── */
+#pip-overlay {
+  position: fixed;
+  bottom: 52px;
+  right: 16px;
+  width: 320px;
+  background: rgba(3,5,15,0.97);
+  border: 1px solid rgba(0,191,255,0.25);
+  border-radius: 14px;
+  z-index: 9999;
+  font-family: 'Consolas', monospace;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,191,255,0.08);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+#pip-overlay.hidden { display: none; }
+#pip-overlay.pip-mini { width: 200px; }
+#pip-overlay.pip-mini #pip-video-list,
+#pip-overlay.pip-mini #pip-status-bar { display: none; }
+
+#pip-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(0,191,255,0.06);
+  border-bottom: 1px solid rgba(0,191,255,0.1);
+  cursor: move;
+  user-select: none;
+}
+#pip-site-icon { font-size: 14px; }
+#pip-title { flex: 1; font-size: 11px; color: var(--accent, #00BFFF); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pip-controls { display: flex; gap: 4px; }
+#pip-controls button {
+  background: none;
+  border: none;
+  color: #4a6a8a;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 11px;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+#pip-controls button:hover { background: rgba(0,191,255,0.1); color: var(--accent, #00BFFF); }
+#pip-native-btn:hover { color: #22c55e !important; }
+#pip-close-btn:hover  { background: rgba(255,68,85,0.15) !important; color: #ff4455 !important; }
+
+#pip-video-list {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#pip-no-video {
+  text-align: center;
+  color: #2a4a6a;
+  font-size: 11px;
+  padding: 20px 0;
+}
+.pip-video-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,191,255,0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: all 0.15s;
+}
+.pip-video-item:hover { border-color: rgba(0,191,255,0.25); background: rgba(0,191,255,0.04); }
+.pip-video-thumb {
+  width: 64px;
+  height: 36px;
+  background: #0a1020;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 1px solid rgba(0,191,255,0.1);
+}
+.pip-video-info { flex: 1; min-width: 0; }
+.pip-video-site { font-size: 10px; color: var(--accent, #00BFFF); letter-spacing: 1px; text-transform: uppercase; }
+.pip-video-dims { font-size: 9px; color: #2a4a6a; margin-top: 2px; }
+.pip-video-duration { font-size: 9px; color: #4a6a8a; margin-top: 1px; }
+.pip-btn {
+  background: rgba(0,191,255,0.08);
+  border: 1px solid rgba(0,191,255,0.2);
+  color: var(--accent, #00BFFF);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: 'Consolas', monospace;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pip-btn:hover { background: rgba(0,191,255,0.18); transform: scale(1.05); }
+.pip-btn.active { background: rgba(0,191,255,0.2); border-color: rgba(0,191,255,0.5); }
+
+#pip-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-top: 1px solid rgba(0,191,255,0.08);
+}
+#pip-count-label { font-size: 9px; color: #2a4a6a; letter-spacing: 1px; }
+#pip-refresh-btn {
+  background: none;
+  border: none;
+  color: #2a4a6a;
+  cursor: pointer;
+  font-size: 9px;
+  font-family: 'Consolas', monospace;
+  transition: color 0.15s;
+  letter-spacing: 1px;
+}
+#pip-refresh-btn:hover { color: var(--accent, #00BFFF); }
+
+/* Botão PiP ativo na navbar */
+#btn-pip.pip-active { color: var(--accent, #00BFFF) !important; }
+</style>
+
+</body>
+</html>
