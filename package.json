@@ -15,7 +15,10 @@
     "build:all":        "electron-builder --win --mac --linux"
   },
   "keywords": ["browser", "ai", "jarvis", "lumina"],
-  "author": "Stark Industries",
+  "author": {
+    "name": "Stark Industries",
+    "email": "lumina@starkindustries.dev"
+  },
   "license": "MIT",
   "build": {
     "appId": "com.starkindustries.lumina",
@@ -44,10 +47,8 @@
       ],
       "icon": "assets/icon.png",
       "category": "public.app-category.utilities",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "linux": {
       "target": [
