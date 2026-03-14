@@ -4,26 +4,20 @@
   "description": "LUMINA — Intelligent Browser powered by JARVIS AI",
   "main": "main.js",
   "scripts": {
-    "start":            "electron .",
-    "prebuild:win":     "node build-backend.js",
-    "prebuild:mac":     "node build-backend.js",
-    "prebuild:linux":   "node build-backend.js",
-    "build":            "electron-builder",
-    "build:win":        "electron-builder --win --x64",
-    "build:mac":        "electron-builder --mac --x64 --arm64",
-    "build:linux":      "electron-builder --linux --x64",
-    "build:all":        "electron-builder --win --mac --linux"
+    "start":       "electron .",
+    "build":       "electron-builder",
+    "build:win":   "electron-builder --win --x64",
+    "build:mac":   "electron-builder --mac --x64 --arm64",
+    "build:linux": "electron-builder --linux --x64",
+    "build:all":   "electron-builder --win --mac --linux"
   },
-  "keywords": ["browser", "ai", "jarvis", "lumina"],
-  "author": {
-    "name": "Stark Industries",
-    "email": "lumina@starkindustries.dev"
-  },
+  "keywords": ["browser","ai","jarvis","lumina"],
+  "author": "Stark Industries",
   "license": "MIT",
   "build": {
     "appId": "com.starkindustries.lumina",
     "productName": "Lumina",
-    "icon": "assets/icon.png",
+    "icon": "assets/icon",
     "files": [
       "**/*",
       "!node_modules/.cache",
@@ -31,8 +25,8 @@
       "!**/._*"
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64", "ia32"] }],
-      "icon": "assets/icon.png"
+      "target": [{ "target": "nsis", "arch": ["x64","ia32"] }],
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -42,13 +36,15 @@
     },
     "mac": {
       "target": [
-        { "target": "dmg",  "arch": ["x64", "arm64"] },
-        { "target": "zip",  "arch": ["x64", "arm64"] }
+        { "target": "dmg", "arch": ["x64","arm64"] },
+        { "target": "zip", "arch": ["x64","arm64"] }
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/icon.icns",
       "category": "public.app-category.utilities",
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "linux": {
       "target": [
@@ -59,16 +55,20 @@
       "icon": "assets/icon.png",
       "category": "Network",
       "desktop": {
-        "entry": {
-          "Name": "Lumina Browser",
-          "Comment": "Intelligent Browser powered by AI",
-          "Categories": "Network;WebBrowser;"
-        }
+        "Name": "Lumina Browser",
+        "Comment": "Intelligent Browser powered by AI",
+        "Categories": "Network;WebBrowser;"
       }
     },
-    "publish": null
+    "publish": {
+      "provider": "github",
+      "owner": "starkindustries",
+      "repo": "lumina"
+    }
   },
-  "dependencies": {},
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
   "devDependencies": {
     "electron": "^36.0.0",
     "electron-builder": "^26.8.1"

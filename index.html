@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head><meta charset="UTF-8"><title>LUMINA</title><link rel="stylesheet" href="style.css"></head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
 
+<!-- UPDATE BANNER (preenchido pelo renderer_additions.js) -->
+<div id="update-banner" style="position:fixed;top:0;left:0;right:0;z-index:10000;height:0;overflow:hidden;transition:height 0.3s cubic-bezier(0.4,0,0.2,1);backdrop-filter:blur(20px);background:linear-gradient(135deg,rgba(0,191,255,0.12),rgba(0,191,255,0.04));border-bottom:1px solid rgba(0,191,255,0.25);display:flex;align-items:center"></div>
+
 <!-- ZOOM INDICATOR -->
 <div id="zoom-indicator">100%</div>
 
-<!-- DOWNLOAD BAR -->
+<!-- DOWNLOAD BAR (legada — mantida para compatibilidade) -->
 <div id="download-bar"></div>
 
 <!-- CONTEXT MENU -->
@@ -57,6 +60,7 @@
   </div>
   <webview id="side-webview" src="about:blank"></webview>
 </div>
+
 <div id="bg-wallpaper"></div>
 <div id="toast-container"></div>
 
@@ -104,7 +108,9 @@
   </div>
   <div id="titlebar-right">
     <div id="incognito-badge" class="hidden">🕵 INCÓGNITO</div>
-    <button class="win-btn" id="btn-settings">⚙</button>
+    <!-- Gaming badge (preenchido pelo renderer) -->
+    <div id="gaming-badge" class="hidden" style="font-size:10px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--glass-border);border-radius:6px;padding:2px 8px;letter-spacing:1px"></div>
+    <button class="win-btn" id="btn-settings" title="Configurações">⚙</button>
     <button class="win-btn" id="btn-min">─</button>
     <button class="win-btn" id="btn-max">□</button>
     <button class="win-btn" id="btn-close">✕</button>
@@ -113,21 +119,21 @@
 
 <!-- NAVBAR -->
 <div id="navbar">
-  <button class="nav-btn" id="btn-back">‹</button>
-  <button class="nav-btn" id="btn-fwd">›</button>
-  <button class="nav-btn" id="btn-reload">↻</button>
-  <button class="nav-btn" id="btn-home">⌂</button>
+  <button class="nav-btn" id="btn-back" title="Voltar (Alt+←)">‹</button>
+  <button class="nav-btn" id="btn-fwd"  title="Avançar (Alt+→)">›</button>
+  <button class="nav-btn" id="btn-reload" title="Recarregar (Ctrl+R)">↻</button>
+  <button class="nav-btn" id="btn-home"   title="Início">⌂</button>
   <div id="url-bar-wrap">
     <span id="url-icon">🔒</span>
     <input id="url-bar" type="text" placeholder="Pesquisar ou digitar URL...">
     <button id="url-go">→</button>
   </div>
   <button class="nav-btn" id="btn-bookmark-star" title="Favoritar (Ctrl+D)">☆</button>
-  <button class="nav-btn" id="btn-pip" title="Picture in Picture (Ctrl+P)">⧉</button>
-  <button class="nav-btn" id="btn-side-ai" title="Side AI — JARVIS ao lado (Ctrl+Shift+A)" style="font-size:13px">⚡</button>
+  <button class="nav-btn" id="btn-pip"       title="Picture in Picture">⧉</button>
+  <button class="nav-btn" id="btn-side-ai"   title="Side AI — JARVIS ao lado (Ctrl+Shift+A)" style="font-size:13px">⚡</button>
   <button class="nav-btn" id="btn-summarize" title="Resumir com JARVIS">🤖</button>
-  <button class="nav-btn" id="btn-focus" title="Modo foco">⛶</button>
-  <button class="nav-btn" id="btn-incognito" title="Incógnito (Ctrl+I)">🕵</button>
+  <button class="nav-btn" id="btn-focus"     title="Modo foco (Ctrl+F)">⛶</button>
+  <button class="nav-btn" id="btn-incognito" title="Nova aba incógnita (Ctrl+I)">🕵</button>
   <button class="nav-btn" id="btn-spotlight" title="Command Palette (Ctrl+K)">✦</button>
 </div>
 
@@ -143,22 +149,25 @@
     <button class="sb-btn" id="btn-sessions"  data-label="Sessões">💾</button>
     <button class="sb-btn" id="btn-history"   data-label="Histórico">🕐</button>
     <button class="sb-btn" id="btn-passwords" data-label="Senhas">🔐</button>
+    <button class="sb-btn" id="btn-downloads" data-label="Downloads">⬇</button>
     <button class="sb-btn" id="btn-processes" data-label="Processos">⚙</button>
   </div>
   <div class="sb-divider"></div>
   <div class="sb-section">
-    <button class="sb-btn" id="btn-themes"     data-label="Themes">🎨</button>
-    <button class="sb-btn" id="btn-translate"  data-label="Traduzir">🌐</button>
-    <button class="sb-btn" id="btn-reader"     data-label="Leitura">📖</button>
+    <button class="sb-btn" id="btn-themes"    data-label="Themes">🎨</button>
+    <button class="sb-btn" id="btn-translate" data-label="Traduzir">🌐</button>
+    <button class="sb-btn" id="btn-reader"    data-label="Leitura">📖</button>
     <button class="sb-btn" id="btn-screenshot" data-label="Screenshot">📸</button>
-    <button class="sb-btn" id="btn-voice"      data-label="Voz">🎙</button>
-    <button class="sb-btn" id="btn-captions"   data-label="Legendas">📝</button>
-    <button class="sb-btn" id="btn-split"      data-label="Dividir">⬜</button>
-    <button class="sb-btn" id="btn-adblock"    data-label="Ad Block">🛡</button>
-    <button class="sb-btn" id="btn-pomodoro"   data-label="Pomodoro">🍅</button>
+    <button class="sb-btn" id="btn-voice"     data-label="Voz">🎙</button>
+    <button class="sb-btn" id="btn-captions"  data-label="Legendas">📝</button>
+    <button class="sb-btn" id="btn-split"     data-label="Dividir">⬜</button>
+    <button class="sb-btn" id="btn-adblock"   data-label="Ad Block">🛡</button>
+    <button class="sb-btn" id="btn-pomodoro"  data-label="Pomodoro">🍅</button>
+    <button class="sb-btn" id="btn-notes"     data-label="Notas" onclick="window.toggleNotes&&toggleNotes()">📝</button>
   </div>
   <div class="sb-divider"></div>
   <div class="sb-section sb-bottom">
+    <button class="sb-btn" id="btn-shortcuts" data-label="Atalhos (F1)" onclick="window.showShortcutsModal&&showShortcutsModal()">⌨</button>
     <button class="sb-btn" id="btn-settings"  data-label="Config">⚙</button>
   </div>
   <div id="sb-resize-handle"></div>
@@ -214,7 +223,9 @@
       <div class="shortcut-item"><kbd>Ctrl+L</kbd> Barra URL</div>
       <div class="shortcut-item"><kbd>Ctrl+D</kbd> Favoritar</div>
       <div class="shortcut-item"><kbd>Ctrl+I</kbd> Incógnito</div>
-      <div class="shortcut-item"><kbd>Ctrl+F</kbd> Foco</div>
+      <div class="shortcut-item"><kbd>Ctrl+K</kbd> Palette</div>
+      <div class="shortcut-item"><kbd>Ctrl+N</kbd> Notas</div>
+      <div class="shortcut-item"><kbd>F1</kbd> Atalhos</div>
     </div>
   </div>
 
@@ -269,44 +280,39 @@
     </div>
   </div>
 
-  <!-- SPOTIFY -->
+  <!-- SPOTIFY — conteúdo reconstruído pelo renderer_additions.js -->
   <div id="panel-spotify" class="panel glass hidden">
     <div class="panel-header">
       <div class="panel-title-wrap"><span class="panel-dot" style="background:#1db954"></span><span class="panel-title">🎵 Spotify</span></div>
       <button class="panel-btn panel-close">✕</button>
     </div>
-    <div id="spotify-content">
-      <div id="spotify-setup" class="hidden">
-        <p class="setup-hint">Cole suas credenciais do Spotify Developer:</p>
-        <input class="sp-input" id="sp-client-id" placeholder="Client ID">
-        <input class="sp-input" id="sp-client-secret" placeholder="Client Secret" type="password">
-        <button id="sp-save-btn">Conectar Spotify</button>
-        <a href="#" id="sp-link" class="sp-link">→ developer.spotify.com</a>
-      </div>
-      <div id="spotify-player" class="hidden">
-        <div id="sp-art-wrap"><img id="sp-art" src="" alt="cover"></div>
-        <div id="sp-info"><div id="sp-track">--</div><div id="sp-artist">--</div></div>
-        <div id="sp-progress-wrap"><div id="sp-progress-bar"><div id="sp-progress-fill"></div></div><div id="sp-time"><span id="sp-cur">0:00</span><span id="sp-dur">0:00</span></div></div>
-        <div id="sp-controls">
-          <button class="sp-btn" id="sp-prev">⏮</button>
-          <button class="sp-btn sp-main" id="sp-play">▶</button>
-          <button class="sp-btn" id="sp-next">⏭</button>
-        </div>
-        <div id="sp-vol-wrap"><span>🔈</span><input type="range" id="sp-volume" min="0" max="100" value="50"><span>🔊</span></div>
-      </div>
+    <div id="spotify-content" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="text-align:center;color:var(--text-dim);font-size:11px;padding:24px 0">Carregando Spotify...</div>
     </div>
   </div>
 
   <!-- CLIMA -->
   <div id="panel-weather" class="panel glass hidden">
     <div class="panel-header">
-      <div class="panel-title-wrap"><span class="panel-dot" style="background:#4fc3f7"></span><span class="panel-title">🌍 Clima & Localização</span></div>
+      <div class="panel-title-wrap"><span class="panel-dot" style="background:#4fc3f7"></span><span class="panel-title">🌍 Clima &amp; Localização</span></div>
       <button class="panel-btn panel-close">✕</button>
     </div>
     <div id="weather-content">
-      <div id="weather-permission" class="hidden"><div class="perm-icon">📍</div><p>Permitir acesso à sua localização?</p><div class="perm-btns"><button id="allow-location" class="perm-allow">✅ Permitir</button><button id="deny-location" class="perm-deny">Agora não</button></div></div>
+      <div id="weather-permission" class="hidden">
+        <div class="perm-icon">📍</div>
+        <p>Permitir acesso à sua localização?</p>
+        <div class="perm-btns">
+          <button id="allow-location" class="perm-allow">✅ Permitir</button>
+          <button id="deny-location"  class="perm-deny">Agora não</button>
+        </div>
+      </div>
       <div id="weather-data" class="hidden">
-        <div class="weather-hero"><div id="weather-icon">🌡</div><div id="weather-temp">--°C</div><div id="weather-desc">--</div><div id="w-city" class="w-city">--</div></div>
+        <div class="weather-hero">
+          <div id="weather-icon">🌡</div>
+          <div id="weather-temp">--°C</div>
+          <div id="weather-desc">--</div>
+          <div id="w-city" class="w-city">--</div>
+        </div>
         <div class="weather-grid">
           <div class="w-card glass-light"><div class="w-label">SENSAÇÃO</div><div class="w-val" id="w-feels">--</div></div>
           <div class="w-card glass-light"><div class="w-label">HUMIDADE</div><div class="w-val" id="w-humidity">--</div></div>
@@ -348,7 +354,10 @@
     <div id="settings-content">
       <div class="settings-section">
         <div class="settings-label">🔑 API KEY (Groq)</div>
-        <div class="settings-row"><input class="settings-input" id="cfg-apikey" type="password" placeholder="gsk_..."><button class="settings-btn" id="cfg-apikey-save">Salvar</button></div>
+        <div class="settings-row">
+          <input class="settings-input" id="cfg-apikey" type="password" placeholder="gsk_...">
+          <button class="settings-btn" id="cfg-apikey-save">Salvar</button>
+        </div>
         <a href="#" class="settings-link" id="groq-link">→ console.groq.com/keys (gratuito)</a>
       </div>
       <div class="settings-section">
@@ -401,7 +410,10 @@
         <div class="settings-label">👤 CONTA</div>
         <div class="user-card glass-light">
           <img id="user-avatar" src="" style="display:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--accent)">
-          <div style="flex:1"><div id="user-name" style="font-size:13px;color:var(--text)">--</div><div id="user-email" style="font-size:10px;color:var(--text-dim)">--</div></div>
+          <div style="flex:1">
+            <div id="user-name"  style="font-size:13px;color:var(--text)">--</div>
+            <div id="user-email" style="font-size:10px;color:var(--text-dim)">--</div>
+          </div>
           <button id="btn-logout" class="settings-btn" style="background:rgba(255,68,85,0.15);border:1px solid rgba(255,68,85,0.3);color:#ff4455">Sair</button>
         </div>
       </div>
@@ -409,9 +421,36 @@
         <div class="settings-label">⚡ SISTEMA</div>
         <button class="settings-btn full" id="cfg-startup">🚀 Alternar inicialização com Windows</button>
       </div>
+      <div class="settings-section">
+        <div class="settings-label">🎮 JOGO DE ERRO</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Aparece quando um site falha a carregar. Clique para testar agora:</div>
+        <button class="settings-btn full" id="cfg-test-ironman" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;letter-spacing:2px">
+          🦾 TESTAR IRON MAN
+        </button>
+      </div>
+      <!-- Seção de atualização injetada pelo renderer_additions.js -->
     </div>
   </div>
 
+  <!-- DOWNLOADS -->
+  <div id="panel-downloads" class="panel glass hidden" style="width:380px">
+    <div class="panel-header">
+      <div class="panel-title-wrap">
+        <span class="panel-dot" style="background:#22c55e"></span>
+        <span class="panel-title">⬇ Downloads</span>
+        <span id="dl-badge" style="background:rgba(34,197,94,0.2);color:#22c55e;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:6px;display:none">0</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button id="dl-open-folder" class="panel-btn" style="font-size:10px;padding:4px 8px;border:1px solid var(--glass-border);border-radius:5px">📁 Pasta</button>
+        <button id="dl-clear-done"  class="panel-btn" style="font-size:10px;padding:4px 8px;color:var(--text-dim);border:1px solid var(--glass-border);border-radius:5px">Limpar</button>
+        <button class="panel-btn panel-close">✕</button>
+      </div>
+    </div>
+    <div id="downloads-list" style="max-height:420px;overflow-y:auto;padding:8px"></div>
+    <div id="dl-empty" style="padding:32px;text-align:center;color:var(--text-dim);font-size:11px">
+      Nenhum download ainda.<br>Os arquivos baixados aparecem aqui.
+    </div>
+  </div>
 
   <!-- PROCESSOS -->
   <div id="panel-processes" class="panel glass hidden">
@@ -460,17 +499,17 @@
   </div>
 
   <!-- SCREENSHOT OVERLAY -->
-  <div id="screenshot-overlay" style="position:fixed;inset:0;z-index:600;background:#03050f;display:none">
+  <div id="screenshot-overlay" style="position:fixed;inset:0;z-index:600;background:#03050f;display:none;flex-direction:column">
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,0,0,0.5);border-bottom:1px solid var(--glass-border);flex-shrink:0">
       <span style="font-size:12px;color:var(--accent);font-weight:bold">📸 Anotações</span>
       <div style="display:flex;gap:8px;align-items:center;margin-left:8px">
-        <button class="draw-tool active settings-btn" data-tool="pen" style="padding:6px 10px;font-size:10px">✏ Caneta</button>
-        <button class="draw-tool settings-btn" data-tool="eraser" style="padding:6px 10px;font-size:10px;background:rgba(255,255,255,0.08)">⬜ Borracha</button>
+        <button class="draw-tool active settings-btn" data-tool="pen"    style="padding:6px 10px;font-size:10px">✏ Caneta</button>
+        <button class="draw-tool settings-btn"        data-tool="eraser" style="padding:6px 10px;font-size:10px;background:rgba(255,255,255,0.08)">⬜ Borracha</button>
         <input type="color" id="draw-color" value="#ff4444" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;padding:2px">
         <input type="range" id="draw-size" min="1" max="20" value="3" style="width:80px;accent-color:var(--accent)">
       </div>
       <div style="margin-left:auto;display:flex;gap:8px">
-        <button class="settings-btn" onclick="saveScreenshot()" style="font-size:11px;padding:7px 14px">💾 Salvar</button>
+        <button class="settings-btn" onclick="saveScreenshot()"  style="font-size:11px;padding:7px 14px">💾 Salvar</button>
         <button class="settings-btn" onclick="closeScreenshot()" style="font-size:11px;padding:7px 14px;background:rgba(255,68,85,0.2);border:1px solid rgba(255,68,85,0.3);color:#ff4455">✕ Fechar</button>
       </div>
     </div>
@@ -479,7 +518,7 @@
     </div>
   </div>
 
-  <!-- LEGENDA AO VIVO OVERLAY -->
+  <!-- LEGENDA AO VIVO -->
   <div id="captions-overlay">
     <div id="captions-box">
       <div id="captions-original"></div>
@@ -491,7 +530,7 @@
     </div>
   </div>
 
-  <!-- PAINEL CONFIG LEGENDAS -->
+  <!-- PAINEL LEGENDAS -->
   <div id="panel-captions" class="panel glass hidden">
     <div class="panel-header">
       <div class="panel-title-wrap"><span class="panel-dot" style="background:#f59e0b"></span><span class="panel-title">🎙📝 Legendas ao Vivo</span></div>
@@ -501,7 +540,7 @@
       <div class="settings-label">DISPOSITIVO DE ÁUDIO</div>
       <select id="captions-device" class="settings-input" style="cursor:pointer"></select>
       <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:10px;color:var(--text-dim)">Ou digite o ID manualmente:</span>
+        <span style="font-size:10px;color:var(--text-dim)">Ou ID manual:</span>
         <input id="captions-device-manual" type="number" class="settings-input" placeholder="ex: 23" style="width:80px;padding:6px 10px;font-size:12px" min="0">
         <button class="settings-btn" id="captions-scan-btn" style="font-size:10px;padding:7px 12px">🔍 Escanear</button>
       </div>
@@ -515,14 +554,11 @@
       </div>
       <div class="settings-label">OPACIDADE DO FUNDO</div>
       <input type="range" id="captions-opacity" min="0" max="100" value="70" class="full-range">
-      <button class="settings-btn full" id="captions-start-btn" style="font-size:13px;padding:14px">
-        🎙 Iniciar Legendas
-      </button>
+      <button class="settings-btn full" id="captions-start-btn" style="font-size:13px;padding:14px">🎙 Iniciar Legendas</button>
       <div id="captions-status" style="font-size:10px;color:var(--text-dim);text-align:center"></div>
       <div style="font-size:10px;color:var(--text-dim);line-height:1.7;border-top:1px solid var(--glass-border);padding-top:12px">
-        ℹ Usa <strong style="color:var(--accent)">WASAPI Loopback nativo</strong> do Windows — sem instalar nada extra!<br>
-        Só precisa de: <code style="color:var(--accent)">pip install pyaudiowpatch openai-whisper</code><br>
-        <span style="color:#4a6a8a">Dispositivos marcados com 🔁 são loopbacks do sistema.</span>
+        ℹ Usa <strong style="color:var(--accent)">WASAPI Loopback nativo</strong> — sem VB-Cable!<br>
+        Requer: <code style="color:var(--accent)">pip install pyaudiowpatch openai-whisper</code>
       </div>
     </div>
   </div>
@@ -604,25 +640,19 @@
     <div style="padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:16px">
       <div style="font-size:48px">💬</div>
       <div style="font-size:13px;color:var(--text);letter-spacing:1px;text-align:center">Discord</div>
-      <div style="font-size:10px;color:var(--text-dim);text-align:center;line-height:1.7">
-        O Discord abre em uma janela separada para evitar conflitos de autenticação.
-      </div>
-      <button id="discord-open-app" class="settings-btn full" style="font-size:13px;padding:14px;background:rgba(88,101,242,0.15);border-color:rgba(88,101,242,0.4);color:#8b9cf7">
-        🚀 Abrir Discord
-      </button>
-      <button id="discord-open-web" class="settings-btn full" style="font-size:11px;padding:10px;background:rgba(255,255,255,0.03)">
-        🌐 Abrir no navegador padrão
-      </button>
+      <div style="font-size:10px;color:var(--text-dim);text-align:center;line-height:1.7">O Discord abre em janela separada para evitar conflitos de autenticação.</div>
+      <button id="discord-open-app" class="settings-btn full" style="font-size:13px;padding:14px;background:rgba(88,101,242,0.15);border-color:rgba(88,101,242,0.4);color:#8b9cf7">🚀 Abrir Discord</button>
+      <button id="discord-open-web" class="settings-btn full" style="font-size:11px;padding:10px;background:rgba(255,255,255,0.03)">🌐 Abrir no navegador padrão</button>
     </div>
   </div>
 
-  <!-- SIDE AI — JARVIS AO LADO DA PÁGINA -->
+  <!-- SIDE AI -->
   <div id="side-ai-panel" class="hidden" style="position:fixed;top:72px;right:0;width:320px;height:calc(100vh - 72px - 28px);background:rgba(3,5,15,0.97);border-left:1px solid rgba(0,191,255,0.2);z-index:200;display:flex;flex-direction:column;font-family:'Consolas',monospace">
     <div style="padding:10px 14px;border-bottom:1px solid rgba(0,191,255,0.1);display:flex;align-items:center;justify-content:space-between">
       <span style="font-size:11px;color:var(--accent);letter-spacing:2px">⚡ SIDE AI</span>
       <div style="display:flex;gap:6px">
         <button id="side-ai-analyze" style="background:rgba(0,191,255,0.1);border:1px solid rgba(0,191,255,0.2);color:var(--accent);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:10px;font-family:inherit" title="Analisar página atual">🔍 Analisar</button>
-        <button id="side-ai-close" style="background:none;border:none;color:#4a6a8a;cursor:pointer;font-size:12px;padding:4px 8px;border-radius:4px">✕</button>
+        <button id="side-ai-close"   style="background:none;border:none;color:#4a6a8a;cursor:pointer;font-size:12px;padding:4px 8px;border-radius:4px">✕</button>
       </div>
     </div>
     <div id="side-ai-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px"></div>
@@ -632,7 +662,12 @@
     </div>
   </div>
 </div>
+
+<!-- SCRIPTS — ordem importa -->
 <script src="renderer.js"></script>
+<script src="renderer_additions.js"></script>
+<script src="browser_upgrades.js"></script>
+<script src="polish.js"></script>
 
 <!-- JARVIS STATUS BAR -->
 <div id="jarvis-statusbar">
@@ -652,6 +687,7 @@
   <div class="statusbar-item clickable" onclick="togglePanel('panel-weather');initWeather()">
     <span id="sb-weather">🌡 --°C</span>
   </div>
+  <!-- Network speed injetado pelo renderer_additions.js -->
   <div id="statusbar-spacer"></div>
   <div class="statusbar-item">
     <span id="sb-time"></span>
@@ -660,5 +696,39 @@
     ⚡ JARVIS
   </div>
 </div>
+
+<!-- DOWNLOADS handler setup + Iron Man test -->
+<script>
+  document.getElementById('btn-downloads').onclick = () => {
+    if(typeof togglePanel === 'function') togglePanel('panel-downloads')
+  }
+  document.getElementById('dl-open-folder')?.addEventListener('click', () => {
+    const path = require('path'), os = require('os')
+    require('electron').ipcRenderer.send('reveal-file', path.join(os.homedir(),'Downloads'))
+  })
+  document.getElementById('dl-clear-done')?.addEventListener('click', () => {
+    if(typeof _downloads !== 'undefined') {
+      Object.keys(_downloads).forEach(id => { if(_downloads[id].done) delete _downloads[id] })
+      if(typeof renderDownloads === 'function') renderDownloads()
+      if(typeof toast === 'function') toast('Downloads limpos','info')
+    }
+  })
+
+  // Botão de teste do Iron Man — abre o jogo em nova aba como data URL
+  document.getElementById('cfg-test-ironman')?.addEventListener('click', () => {
+    // A página de erro é definida em polish.js como ERROR_GAME_HTML
+    // Forçamos o mesmo efeito abrindo em nova aba
+    if(typeof window._openIronManGame === 'function') {
+      window._openIronManGame()
+    } else if(typeof createTab === 'function') {
+      // Fallback: tenta navegar para um host inexistente (vai triggar o did-fail-load)
+      createTab('http://lumina.local.test.invalid')
+      if(typeof toast === 'function') toast('🦾 Navegando para host inválido — o jogo vai aparecer!','info',3000)
+    }
+    if(typeof togglePanel === 'function')
+      document.getElementById('panel-settings')?.classList.add('hidden')
+  })
+</script>
+
 </body>
 </html>
