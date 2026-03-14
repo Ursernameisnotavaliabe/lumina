@@ -1,6 +1,6 @@
 {
   "name": "lumina",
-  "version": "1.0.0",
+  "version": "1.0.9",
   "description": "LUMINA — Intelligent Browser powered by JARVIS AI",
   "main": "main.js",
   "scripts": {
@@ -12,7 +12,10 @@
     "build:all":   "electron-builder --win --mac --linux"
   },
   "keywords": ["browser","ai","jarvis","lumina"],
-  "author": "Stark Industries",
+  "author": {
+    "name": "Stark Industries",
+    "email": "lumina@starkindustries.dev"
+  },
   "license": "MIT",
   "build": {
     "appId": "com.starkindustries.lumina",
