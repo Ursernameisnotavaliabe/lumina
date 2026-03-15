@@ -20,7 +20,7 @@
   "build": {
     "appId": "com.starkindustries.lumina",
     "productName": "Lumina",
-    "icon": "assets/icon",
+    "icon": "assets/icon.png",
     "files": [
       "**/*",
       "!node_modules/.cache",
@@ -28,24 +28,20 @@
       "!**/._*"
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64","ia32"] }],
-      "icon": "assets/icon.ico"
+      "target": [{ "target": "nsis", "arch": ["x64","ia32"] }]
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico"
+      "createStartMenuShortcut": true
     },
     "mac": {
       "target": [
         { "target": "dmg", "arch": ["x64","arm64"] },
         { "target": "zip", "arch": ["x64","arm64"] }
       ],
-      "icon": "assets/icon.icns",
       "category": "public.app-category.utilities",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
